@@ -1,0 +1,11 @@
+# Positron Framework Requirements
+
+# Core dependency - HTML/CSS rendering engine with FULL support
+# [full] includes: HTML, images, SVG, JavaScript (PythonMonkey), and requests
+tkinterweb[full]>=4.0.0
+
+# Development dependencies (optional)
+# Uncomment if you want to contribute to Positron development
+# pytest>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0

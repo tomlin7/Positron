@@ -1,0 +1,116 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+}
+
+.App-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+
+h1 {
+  margin: 20px 0 10px 0;
+  font-size: 3em;
+  font-weight: 700;
+  background: linear-gradient(to right, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  margin: 0 0 30px 0;
+  font-size: 1.2em;
+  opacity: 0.9;
+}
+
+.card {
+  padding: 20px;
+  margin: 20px 0;
+}
+
+button {
+  background-color: white;
+  color: #667eea;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.message-box {
+  margin: 20px 0;
+  padding: 15px 25px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.message-box p {
+  margin: 0;
+  font-size: 1em;
+}
+
+.info {
+  margin: 20px 0;
+  padding: 10px 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-size: 0.9em;
+}
+
+.features {
+  margin: 30px 0;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  max-width: 600px;
+}
+
+.features h2 {
+  margin-top: 0;
+  font-size: 1.8em;
+}
+
+.features ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.features li {
+  padding: 8px 0;
+  font-size: 1em;
+}
+
+.code-example {
+  margin-top: 30px;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+code {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}

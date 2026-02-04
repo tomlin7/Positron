@@ -1,0 +1,232 @@
+# Positron Dependencies
+
+## Python Dependencies
+
+### Required (Runtime)
+
+**TkinterWeb** (`>=4.0.0`)
+- HTML/CSS rendering engine based on Tkhtml3
+- Provides the HtmlFrame widget for rendering React apps
+- **Install with: `pip install tkinterweb[full]`** (required for JavaScript)
+
+The `[full]` extra includes:
+- `TkinterWeb-Tkhtml-Extras` - Enhanced features (border-radius, extra cursors)
+- `PIL` - Image support (PNG, JPG, etc.)
+- `Brotli` - Faster page loads on some sites
+- **`PythonMonkey` - JavaScript support (REQUIRED for React apps)**
+- `CairoSVG` or `PyGObject` - SVG image support
+- `requests` - HTTP requests support
+
+### Optional (Development)
+
+```bash
+pip install pytest black flake8
+```
+
+- `pytest` - Testing framework
+- `black` - Code formatting
+- `flake8` - Linting
+
+## JavaScript Dependencies (for React apps)
+
+### Required for React Development
+
+**React** (`>=18.0.0`)
+```bash
+npm install react react-dom
+```
+
+**Vite** (`>=5.0.0`) - Build tool and dev server
+```bash
+npm install vite @vitejs/plugin-react
+```
+
+### Example package.json
+
+```json
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.0"
+  }
+}
+```
+
+## System Dependencies
+
+**Python 3.8+**
+- Positron requires Python 3.8 or higher
+- Tkinter is usually included with Python
+
+**Node.js 16+**
+- Required for React development with Vite
+- npm or yarn package manager
+
+**Tkinter**
+- Usually included with Python
+- On some Linux systems, install separately:
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install python3-tk
+  
+  # Fedora
+  sudo dnf install python3-tkinter
+  
+  # Arch Linux
+  sudo pacman -S tk
+  ```
+
+## Installation Methods
+
+### Method 1: Using requirements.txt (Recommended)
+
+```bash
+git clone https://github.com/yourusername/positron.git
+cd positron
+pip install -r requirements.txt
+```
+
+### Method 2: Using setup.py
+
+```bash
+git clone https://github.com/yourusername/positron.git
+cd positron
+pip install -e .
+```
+
+The `-e` flag installs in "editable" mode for development.
+
+### Method 3: From PyPI (Future)
+
+Once published:
+```bash
+pip install positron-framework
+```
+
+## Dependency Tree
+
+```
+positron-framework
+└── tkinterweb[full] (>=4.0.0)
+    ├── TkinterWeb-Tkhtml (core engine)
+    ├── TkinterWeb-Tkhtml-Extras (enhanced features)
+    ├── PIL (image support)
+    ├── Brotli (compression)
+    ├── PythonMonkey (JavaScript support - REQUIRED)
+    ├── CairoSVG (SVG support)
+    └── requests (HTTP support)
+```
+
+**Note:** The `[full]` installation is required because React apps need JavaScript support via PythonMonkey.
+
+## About the TkinterWeb Folder
+
+The `TkinterWeb/` folder in this repository is **for reference only**.
+
+- Positron uses TkinterWeb installed via pip, not this local folder
+- This folder is kept for:
+  - Understanding internal workings
+  - Development reference
+  - Offline code browsing
+- You can safely delete it without affecting Positron
+
+See [TkinterWeb/REFERENCE_ONLY.md](TkinterWeb/REFERENCE_ONLY.md) for details.
+
+## Verifying Installation
+
+Test that all imports work:
+
+```python
+# Test Positron imports
+from positron import App, BrowserWindow
+from positron.ipc import ipc_main
+from positron.renderer import DevServer
+
+print("✓ Positron imports successful!")
+
+# Test TkinterWeb import
+from tkinterweb import HtmlFrame
+print("✓ TkinterWeb import successful!")
+```
+
+Run the test:
+```bash
+python -c "from positron import App, BrowserWindow; from positron.ipc import ipc_main; print('✓ All imports OK')"
+```
+
+## Troubleshooting
+
+### ImportError: No module named 'tkinterweb'
+
+**Solution:**
+```bash
+pip install tkinterweb[full]
+```
+
+### ImportError: No module named 'tkinter'
+
+**Solution:** Install Tkinter for your system (see System Dependencies above)
+
+### React app won't start
+
+**Solution:**
+```bash
+cd examples/react-app
+npm install  # Install Node.js dependencies first
+```
+
+### Port already in use
+
+If port 5173 is already in use:
+
+1. Change port in `vite.config.js`:
+```javascript
+export default defineConfig({
+  server: {
+    port: 5174,  // Change port
+  }
+})
+```
+
+2. Update `DevServer` in `main.py`:
+```python
+dev_server = DevServer(
+    cwd=str(Path(__file__).parent),
+    port=5174  # Match new port
+)
+```
+
+## Minimum Versions
+
+| Package | Minimum Version | Recommended |
+|---------|----------------|-------------|
+| Python | 3.8 | 3.11+ |
+| TkinterWeb | 4.0.0 | Latest |
+| Node.js | 16.0.0 | 18+ LTS |
+| React | 18.0.0 | Latest |
+| Vite | 5.0.0 | Latest |
+
+## Platform Support
+
+Positron works on all platforms that support Python and Tkinter:
+
+- ✅ Windows (7, 10, 11)
+- ✅ macOS (10.14+)
+- ✅ Linux (Ubuntu, Fedora, Arch, etc.)
+
+TkinterWeb binaries are available for:
+- Windows (32-bit and 64-bit)
+- macOS (Intel and Apple Silicon)
+- Linux (64-bit)
+
+## License Compatibility
+
+All dependencies are compatible with MIT license:
+- TkinterWeb: MIT License
+- React: MIT License
+- Vite: MIT License
+- Positron: MIT License

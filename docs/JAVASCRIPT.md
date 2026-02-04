@@ -1,0 +1,389 @@
+# JavaScript Support in Positron
+
+Positron supports JavaScript execution in the renderer process through **PythonMonkey**, which provides a bridge between Python and JavaScript.
+
+## Installation
+
+JavaScript support is included when you install TkinterWeb with the `[full]` extra:
+
+```bash
+pip install tkinterweb[full]
+```
+
+Or using requirements.txt:
+```bash
+pip install -r requirements.txt
+```
+
+## How JavaScript Works in Positron
+
+### Architecture
+
+```
+┌─────────────────────────────────┐
+│     React App (JavaScript)      │
+│  - Component rendering          │
+│  - State management             │
+│  - Event handlers               │
+└────────────┬────────────────────┘
+             │
+             │ Executed by
+             │
+┌────────────▼────────────────────┐
+│   PythonMonkey (JS Engine)      │
+│  - JavaScript execution         │
+│  - DOM manipulation             │
+│  - Browser APIs                 │
+└────────────┬────────────────────┘
+             │
+             │ Renders to
+             │
+┌────────────▼────────────────────┐
+│   TkinterWeb (HTML Renderer)    │
+│  - HTML/CSS display             │
+│  - Event handling               │
+└─────────────────────────────────┘
+```
+
+### What's Supported
+
+**✅ Supported:**
+- React and ReactDOM
+- Modern JavaScript (ES6+)
+- DOM manipulation
+- Event handlers
+- State management (useState, useEffect, etc.)
+- Component lifecycle
+- Basic browser APIs
+- Console logging
+
+**⚠️ Partially Supported:**
+- Fetch API (use IPC to Python instead)
+- LocalStorage (limited)
+- Some newer Web APIs
+
+**❌ Not Supported:**
+- Service Workers
+- WebGL
+- WebAssembly
+- Full Chromium APIs
+- Some HTML5 APIs
+
+## React Integration
+
+React works great with Positron because:
+
+1. **Vite compiles React to standard JavaScript**
+   - All JSX is transpiled to regular JavaScript
+   - PythonMonkey executes the compiled code
+   - No special configuration needed
+
+2. **TkinterWeb renders the resulting HTML/CSS**
+   - React manipulates the DOM
+   - TkinterWeb displays the DOM
+   - Updates happen reactively
+
+### Example: React Component
+
+```jsx
+// This works perfectly in Positron
+import { useState } from 'react'
+
+function Counter() {
+  const [count, setCount] = useState(0)
+  
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  )
+}
+```
+
+The compiled JavaScript from Vite is executed by PythonMonkey, and the resulting DOM is rendered by TkinterWeb.
+
+## Using JavaScript with IPC
+
+You can call Python from JavaScript and vice versa:
+
+### From React to Python
+
+```jsx
+// React component
+function App() {
+  const callPython = async () => {
+    // This JavaScript runs via PythonMonkey
+    const result = await window.ipcRenderer.invoke('python-function', 'data')
+    console.log(result)
+  }
+  
+  return <button onClick={callPython}>Call Python</button>
+}
+```
+
+### From Python to React
+
+```python
+# Python main.py
+from positron.ipc import ipc_main
+
+@ipc_main.handle('python-function')
+def handle_request(event, data):
+    # Process in Python (full Python ecosystem)
+    result = process_data(data)
+    return result
+```
+
+## Console Output
+
+JavaScript console output appears in the Python terminal:
+
+```jsx
+console.log('Hello from React!')  // Shows in terminal
+console.error('Error message')     // Shows in terminal
+console.warn('Warning')            // Shows in terminal
+```
+
+## Performance Considerations
+
+### What PythonMonkey Does Well
+- ✅ Modern JavaScript syntax
+- ✅ React components and hooks
+- ✅ DOM manipulation
+- ✅ Event handling
+- ✅ State updates
+
+### Performance Tips
+
+1. **Use IPC for heavy operations**
+   ```jsx
+   // Instead of processing in JavaScript
+   const data = await fetch('/api/data')
+   const processed = expensiveOperation(data)
+   
+   // Do this in Python via IPC
+   const processed = await window.ipcRenderer.invoke('process-data')
+   ```
+
+2. **Keep rendering logic in React**
+   - React is optimized for UI updates
+   - Let React handle component rendering
+   - Use Python for backend logic
+
+3. **Minimize JavaScript complexity**
+   - Complex algorithms → Python
+   - UI logic → React/JavaScript
+   - Data processing → Python
+
+## Debugging JavaScript
+
+### Console Logging
+
+```jsx
+console.log('Debug:', variable)
+console.error('Error occurred:', error)
+console.table(arrayData)  // May have limited support
+```
+
+### Error Handling
+
+```jsx
+try {
+  // JavaScript code
+  const result = await window.ipcRenderer.invoke('might-fail')
+} catch (error) {
+  console.error('IPC Error:', error.message)
+}
+```
+
+### Python Side Debugging
+
+```python
+@ipc_main.handle('debug-endpoint')
+def debug(event, data):
+    print(f"Received from JS: {data}")
+    import pdb; pdb.set_trace()  # Python debugger
+    return "response"
+```
+
+## Browser API Compatibility
+
+### Available in Positron
+
+| API | Status | Notes |
+|-----|--------|-------|
+| `console.*` | ✅ Full | All console methods work |
+| `window.ipcRenderer` | ✅ Full | Custom Positron API |
+| `document.querySelector` | ✅ Full | DOM selection |
+| `element.addEventListener` | ✅ Full | Event handling |
+| `setTimeout/setInterval` | ✅ Full | Timers work |
+| `JSON.*` | ✅ Full | JSON parsing |
+| `localStorage` | ⚠️ Partial | Limited support |
+| `fetch` | ⚠️ Partial | Use IPC instead |
+| `XMLHttpRequest` | ⚠️ Partial | Use IPC instead |
+
+### Not Available
+
+| API | Alternative |
+|-----|-------------|
+| `fetch` | Use Python's `requests` via IPC |
+| Service Workers | Not supported |
+| WebGL | Not supported |
+| WebRTC | Not supported |
+| WebSockets | Use Python's `websockets` via IPC |
+
+## Best Practices
+
+### 1. Use React for UI, Python for Logic
+
+```jsx
+// ✅ Good: UI in React
+function DataDisplay({ data }) {
+  return (
+    <div>
+      {data.map(item => <Card key={item.id} item={item} />)}
+    </div>
+  )
+}
+```
+
+```python
+# ✅ Good: Heavy processing in Python
+@ipc_main.handle('process-data')
+def process_data(event, raw_data):
+    import pandas as pd
+    df = pd.DataFrame(raw_data)
+    processed = df.groupby('category').sum()
+    return processed.to_dict('records')
+```
+
+### 2. Handle Network Requests in Python
+
+```jsx
+// ❌ Avoid: Fetch in JavaScript
+const data = await fetch('https://api.example.com/data')
+
+// ✅ Better: Fetch in Python via IPC
+const data = await window.ipcRenderer.invoke('fetch-data', url)
+```
+
+```python
+# Python handles the request
+import requests
+
+@ipc_main.handle('fetch-data')
+def fetch_data(event, url):
+    response = requests.get(url)
+    return response.json()
+```
+
+### 3. Use TypeScript for Better Development
+
+```typescript
+// TypeScript provides type safety
+interface IPCRenderer {
+  send(channel: string, ...args: any[]): void
+  invoke(channel: string, ...args: any[]): Promise<any>
+  on(channel: string, callback: Function): void
+}
+
+declare global {
+  interface Window {
+    ipcRenderer: IPCRenderer
+  }
+}
+```
+
+## Verifying JavaScript Support
+
+Test that JavaScript is working:
+
+```bash
+python -c "import pythonmonkey; print('✓ JavaScript support available')"
+```
+
+Run a simple test:
+
+```python
+from positron import App, BrowserWindow
+
+app = App()
+
+def test_js():
+    win = BrowserWindow()
+    win.load_html("""
+    <html>
+      <head>
+        <script>
+          console.log('JavaScript is working!')
+          setTimeout(() => {
+            document.body.innerHTML = '<h1>JavaScript Works!</h1>'
+          }, 100)
+        </script>
+      </head>
+      <body>Loading...</body>
+    </html>
+    """)
+
+app.when_ready(test_js)
+app.run()
+```
+
+You should see:
+1. "JavaScript is working!" in terminal
+2. "JavaScript Works!" displayed in window
+
+## Troubleshooting
+
+### JavaScript Not Executing
+
+**Check installation:**
+```bash
+pip list | grep -i pythonmonkey
+```
+
+Should show: `pythonmonkey`
+
+**Reinstall if missing:**
+```bash
+pip install tkinterweb[full] --force-reinstall
+```
+
+### React App Not Rendering
+
+1. **Check browser console** (terminal output)
+2. **Verify Vite build** is working
+3. **Check for JavaScript errors** in terminal
+4. **Test with simple HTML** first
+
+### Performance Issues
+
+1. **Profile where time is spent:**
+   - React rendering? → Optimize components
+   - Python processing? → Optimize algorithms
+   - IPC communication? → Batch requests
+
+2. **Use React DevTools mindset:**
+   - Memoize expensive computations
+   - Use React.memo for components
+   - Implement proper key props
+
+## Summary
+
+✅ **Positron fully supports JavaScript for React apps** through PythonMonkey
+
+✅ **Best practice:** UI in React (JS), logic in Python
+
+✅ **Installation:** `pip install tkinterweb[full]`
+
+✅ **Works great for:** Desktop apps with React frontend and Python backend
+
+The combination of React's UI capabilities and Python's backend power makes Positron perfect for:
+- Data science dashboards
+- Machine learning tools
+- Automation interfaces
+- System utilities with modern UIs
+- Desktop applications that need both web tech and Python libraries
