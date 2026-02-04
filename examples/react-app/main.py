@@ -41,9 +41,6 @@ def on_button_clicked(event, count):
 ipc_main.on("renderer-ready", on_renderer_ready)
 ipc_main.on("button-clicked", on_button_clicked)
 
-# Debug: Print registered handlers
-print(f"Registered IPC handlers: {list(ipc_main._handlers.keys())}")
-
 
 def create_window():
     """Create the main application window"""
