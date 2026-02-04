@@ -7,7 +7,7 @@ description: Build cross-platform desktop apps with React and Python
 
 **Build cross-platform desktop apps with React and Python**
 
-Positron is an Electron-like framework that lets you create desktop applications using React for the UI and Python for the backend. It uses TkinterWeb to render your React apps in native windows.
+Positron is an Electron-like framework that lets you create desktop applications using React for the UI and Python for the backend. It uses real browser engines (WebView2/WebKit) to render your React apps natively.
 
 ```python
 from positron import App, BrowserWindow
@@ -44,7 +44,7 @@ app.run()
 - Familiar project structure
 
 ### Lightweight Alternative
-- Uses TkinterWeb instead of Chromium
+- Uses system webview instead of bundled Chromium
 - Smaller bundle sizes
 - Lower memory footprint
 
@@ -53,23 +53,24 @@ app.run()
 | Feature | Electron | Positron |
 |---------|----------|----------|
 | Backend Language | Node.js | Python |
-| Renderer | Chromium | TkinterWeb (Tkhtml3) |
-| HTML/CSS Support | HTML5, CSS3 | HTML 4.01, CSS 2.1 |
-| JavaScript | Full V8 | Partial (basic DOM) |
-| IPC API | ✅ Same | ✅ Same |
-| Window API | ✅ Same | ✅ Same |
-| App Lifecycle | ✅ Same | ✅ Same |
-| Bundle Size | Large (~150MB) | Small (~10MB) |
-| Memory Usage | High | Low |
+| Renderer | Chromium (bundled) | System WebView |
+| HTML/CSS Support | HTML5, CSS3 | HTML5, CSS3 ✅ |
+| JavaScript | Full V8 | Full (WebView2/WebKit) ✅ |
+| React Support | ✅ Full | ✅ Full |
+| IPC API | ✅ | ✅ Same API |
+| Window API | ✅ | ✅ Same API |
+| App Lifecycle | ✅ | ✅ Same API |
+| Bundle Size | Large (~150MB) | Small (~5-10MB) |
+| Memory Usage | High | Lower |
 
 ## Supported Technologies
 
-**Frontend**
-- ✅ React (with Vite or Webpack)
-- ✅ HTML 4.01
-- ✅ CSS 2.1 (+ border-radius on 64-bit)
-- ✅ JavaScript (via PythonMonkey - included with [full] installation)
-- ✅ Images (PNG, JPG, SVG)
+**Frontend (via pywebview)**
+- ✅ **Full React support** - Modern React with hooks, ES modules, everything!
+- ✅ HTML5 / CSS3
+- ✅ Modern JavaScript (ES6+)
+- ✅ Any modern web framework (Vue, Angular, Svelte)
+- ✅ WebView2 (Windows), WebKit (macOS), GTK WebKit (Linux)
 
 **Backend (Python)**
 - ✅ Any Python library
@@ -101,6 +102,5 @@ MIT License - see LICENSE file for details
 ## Credits
 
 Built on top of:
-- [TkinterWeb](https://github.com/Andereoo/TkinterWeb) - HTML rendering widget
-- [Tkhtml3](http://tkhtml.tcl.tk/) - HTML/CSS engine
+- [pywebview](https://github.com/r0x0r/pywebview) - Cross-platform webview wrapper
 - Inspired by [Electron](https://www.electronjs.org/)

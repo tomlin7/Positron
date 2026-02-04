@@ -1,8 +1,14 @@
 # Positron Framework Requirements
 
-# Core dependency - HTML/CSS rendering engine with FULL support
-# [full] includes: HTML, images, SVG, JavaScript (PythonMonkey), and requests
-tkinterweb[full]>=4.0.0
+# Core dependency - WebView for modern browser support
+# Uses WebView2 (Windows), WebKit (macOS), GTK WebKit (Linux)
+pywebview>=6.0
+
+# Optional: For enhanced features
+# pythonnet  # Already installed with pywebview on Windows
+
+# Legacy TkinterWeb support (deprecated, limited HTML 4.01/CSS 2.1)
+# tkinterweb[full]>=4.0.0
 
 # Development dependencies (optional)
 # Uncomment if you want to contribute to Positron development

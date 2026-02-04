@@ -1,7 +1,8 @@
-# docs
+# Positron Documentation
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Official documentation site for **Positron** - Build desktop apps with Python and React.
+
+This is a Next.js application built with [Fumadocs](https://fumadocs.dev).
 
 Run development server:
 

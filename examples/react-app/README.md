@@ -1,6 +1,6 @@
 # Positron React Example App
 
-This is an example application built with Positron, demonstrating how to create desktop apps using Python and React.
+This is a **full React application** built with Positron, demonstrating how to create desktop apps using Python and React.
 
 ## Project Structure
 
@@ -28,10 +28,10 @@ npm install
 
 ### 2. Install Python Dependencies
 
-Make sure TkinterWeb is available:
+Make sure pywebview is installed:
 
 ```bash
-pip install tkinterweb[recommended]
+pip install pywebview
 ```
 
 ### 3. Run the App
@@ -42,14 +42,27 @@ python main.py
 
 The app will:
 1. Start a Vite dev server for React
-2. Create a Positron window
+2. Create a Positron window with **real browser engine**
 3. Load the React app in the window
+
+## ✨ Full React Support
+
+This is a **real React application** with:
+
+✅ **Modern React** - hooks, context, everything!  
+✅ **ES6+ JavaScript** - modules, async/await, all modern features  
+✅ **Hot Module Replacement** - changes appear instantly  
+✅ **Vite dev server** - fast builds and updates  
+✅ **Real browser engine** - WebView2 (Windows), WebKit (macOS/Linux)  
+✅ **Full CSS3** - Grid, Flexbox, animations  
+✅ **IPC communication** - Python ↔ React  
+✅ **All browser APIs** - Fetch, WebSockets, LocalStorage  
 
 ## Features Demonstrated
 
 ### IPC Communication
 
-The example shows bidirectional communication between Python and React:
+Bidirectional communication between Python and React:
 
 **From React to Python:**
 ```javascript
@@ -96,7 +109,7 @@ win.load_url(dev_server.get_url())
 
 ## Building for Production
 
-To build the React app for production:
+Build the React app for production:
 
 ```bash
 npm run build
@@ -111,22 +124,66 @@ win.load_file('dist/index.html')
 
 ## Development
 
-- Hot reload is enabled via Vite
-- Edit `src/App.jsx` and see changes instantly
+- ✅ **Hot reload enabled** - changes appear instantly!
+- ✅ **Edit `src/App.jsx`** - see updates in real-time
+- ✅ **React DevTools** may work (platform-dependent)
 - Python changes require restarting the app
 
 ## Comparison to Electron
 
-| Electron | Positron |
-|----------|----------|
-| Node.js backend | Python backend |
-| Chromium renderer | TkinterWeb (Tkhtml3) renderer |
-| `ipcMain`/`ipcRenderer` | Same API in Positron |
-| `BrowserWindow` | Same API in Positron |
-| `app.whenReady()` | Same API in Positron |
+| Feature | Electron | Positron |
+|---------|----------|----------|
+| Backend | Node.js | **Python** |
+| Renderer | Chromium (bundled) | **System WebView** |
+| React Support | ✅ | ✅ |
+| Modern JS | ✅ | ✅ |
+| `ipcMain`/`ipcRenderer` | ✅ | ✅ **Same API** |
+| `BrowserWindow` | ✅ | ✅ **Same API** |
+| Bundle Size | ~150MB | **~5-10MB** |
 
-## Notes
+## Platform Support
 
-- The renderer uses TkinterWeb which supports HTML 4.01 and CSS 2.1
-- Modern React features work, but some advanced CSS may not be supported
-- JavaScript support is partial (basic DOM manipulation works)
+### Windows
+- **Microsoft Edge WebView2** (Chromium-based)
+- Usually pre-installed on Windows 10/11
+- Full modern web support
+
+### macOS
+- **System WebKit**
+- Built into macOS
+- Native performance
+
+### Linux
+- **GTK WebKit2**
+- Install: `sudo apt-get install python3-gi gir1.2-webkit2-4.0`
+- Full compatibility
+
+## Troubleshooting
+
+### React app shows blank screen
+
+1. Check dev server is running (see terminal output)
+2. Try: `npm run dev` separately to verify Vite starts
+3. Check port 5173 isn't blocked by firewall
+
+### Import errors
+
+```bash
+# Install pywebview
+pip install pywebview
+
+# Linux: Install system dependencies
+sudo apt-get install python3-gi gir1.2-webkit2-4.0
+```
+
+### WebView2 missing (Windows)
+
+If you get WebView2 errors on Windows:
+- Download: https://developer.microsoft.com/microsoft-edge/webview2/
+- Usually pre-installed on Windows 10/11
+
+## Learn More
+
+- [Main Documentation](../../docs)
+- [API Reference](../../docs/content/docs/api)
+- [Architecture Guide](../../docs/content/docs/architecture.mdx)

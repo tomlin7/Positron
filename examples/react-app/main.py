@@ -41,9 +41,24 @@ def on_button_clicked(event, count):
 ipc_main.on("renderer-ready", on_renderer_ready)
 ipc_main.on("button-clicked", on_button_clicked)
 
+# Debug: Print registered handlers
+print(f"Registered IPC handlers: {list(ipc_main._handlers.keys())}")
+
 
 def create_window():
     """Create the main application window"""
+    # Start dev server first (in background)
+    dev_server = DevServer(
+        cwd=str(Path(__file__).parent), command="npm run dev", port=5173
+    )
+
+    try:
+        dev_server.start()
+    except Exception as e:
+        print(f"Error starting dev server: {e}")
+        print("Make sure to run 'npm install' first!")
+        return None, None
+
     # Create browser window
     win = BrowserWindow(
         {
@@ -58,25 +73,14 @@ def create_window():
         }
     )
 
-    # Load React dev server in development
-    # For production, you would load the built HTML file
-    dev_server = DevServer(
-        cwd=str(Path(__file__).parent), command="npm run dev", port=5173
-    )
-
-    try:
-        dev_server.start()
-        win.load_url(dev_server.get_url())
-    except Exception as e:
-        print(f"Error starting dev server: {e}")
-        print("Make sure to run 'npm install' first!")
-        app.quit()
-        return
+    # Load the dev server URL
+    win.load_url(dev_server.get_url())
 
     # Handle window events
     def on_window_closed():
         print("Window closed")
-        dev_server.stop()
+        if dev_server:
+            dev_server.stop()
 
     win.on("closed", on_window_closed)
 
@@ -93,7 +97,19 @@ def main():
 
     def on_ready():
         nonlocal window, dev_server
-        window, dev_server = create_window()
+        try:
+            result = create_window()
+            if result is None or result == (None, None):
+                print("Failed to create window, quitting...")
+                app.quit()
+                return
+            window, dev_server = result
+        except Exception as e:
+            print(f"Error creating window: {e}")
+            import traceback
+
+            traceback.print_exc()
+            app.quit()
 
     app.when_ready(on_ready)
 

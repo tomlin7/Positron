@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page</title>
+    <style>
+        body {
+            background: #282c34;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 50px;
+        }
+        h1 { color: #61dafb; }
+    </style>
+</head>
+<body>
+    <h1>WebView2 Test Page</h1>
+    <p>If you can see this, basic HTML works!</p>
+    <div id="output"></div>
+
+    <script>
+        console.log("JavaScript is working!");
+        document.getElementById('output').innerHTML = '<p style="color: lime;">✓ JavaScript is executing!</p>';
+
+        // Test if window.positron exists after IPC injection
+        setTimeout(() => {
+            if (window.positron) {
+                console.log("Positron IPC detected!");
+                document.getElementById('output').innerHTML += '<p style="color: lime;">✓ Positron IPC is available!</p>';
+            } else {
+                console.log("No Positron IPC yet");
+                document.getElementById('output').innerHTML += '<p style="color: orange;">⚠ Waiting for Positron IPC...</p>';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

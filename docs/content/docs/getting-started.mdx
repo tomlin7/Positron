@@ -28,13 +28,13 @@ cd positron
 pip install -r requirements.txt
 ```
 
-Or manually install TkinterWeb with full features (including JavaScript):
+Or manually install pywebview:
 ```bash
-pip install tkinterweb[full]
+pip install pywebview
 ```
 
 <Callout type="info">
-The `[full]` extra includes JavaScript support via PythonMonkey, which is required for React apps. The `TkinterWeb/` folder in the repo is for reference only. Positron uses the TkinterWeb package from pip.
+Positron uses **pywebview** for rendering, which provides a real browser engine (WebView2 on Windows, WebKit on macOS, GTK WebKit on Linux). This gives you full React, HTML5, and modern JavaScript support!
 </Callout>
 
 ## Run the Example App
@@ -185,13 +185,13 @@ def process_csv(event, filepath):
 2. Install dependencies: `npm install`
 3. Check if port 5173 is available
 
-### TkinterWeb Not Found
+### Pywebview Not Found
 
-**Problem:** `ImportError: tkinterweb`
+**Problem:** `ImportError: webview`
 
 **Solution:**
 ```bash
-pip install tkinterweb[recommended]
+pip install pywebview
 ```
 
 ### Window Not Showing

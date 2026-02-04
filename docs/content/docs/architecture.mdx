@@ -23,16 +23,18 @@ Positron follows Electron's process model, providing a familiar architecture for
 │  └───────────────────────────────────┘ │
 └──────────────────┬──────────────────────┘
                    │
-                   │ TkinterWeb
+                   │ IPC Bridge
                    │
 ┌──────────────────▼──────────────────────┐
-│   Renderer Process (TkinterWeb/HTML)    │
+│   Renderer Process (WebView)            │
+│   Real Browser Engine                   │
 │                                         │
 │  ┌─────────────────────────────────┐  │
 │  │         React App                │  │
 │  │                                  │  │
-│  │  - Components                    │  │
-│  │  - State Management              │  │
+│  │  - Full React Support            │  │
+│  │  - Modern JavaScript (ES6+)      │  │
+│  │  - HTML5 / CSS3                  │  │
 │  │  - IPC Renderer API              │  │
 │  └─────────────────────────────────┘  │
 └─────────────────────────────────────────┘
@@ -53,19 +55,21 @@ Positron follows Electron's process model, providing a familiar architecture for
 - `ipc_main`: IPC communication handler
 - `DevServer`: Development server integration
 
-## Renderer Process (TkinterWeb)
+## Renderer Process (WebView)
 
 **Responsibilities:**
 - Rendering your React application
-- Displaying HTML, CSS, and executing JavaScript
+- Executing modern JavaScript (full ES6+)
+- Displaying HTML5/CSS3 content
 - Sending IPC messages to main process
 - Isolated from main process for security
 
 **Technologies:**
-- TkinterWeb: HTML/CSS rendering widget
-- Tkhtml3: HTML 4.01 / CSS 2.1 engine
-- PythonMonkey: JavaScript execution
-- React: UI framework
+- **pywebview**: Cross-platform webview wrapper
+- **WebView2** (Windows): Chromium-based Edge engine
+- **WebKit** (macOS): System browser engine
+- **GTK WebKit** (Linux): WebKit2GTK engine
+- **React**: UI framework (fully supported!)
 
 ## Data Flow
 
@@ -102,7 +106,7 @@ win = BrowserWindow({
 
 **Flow:**
 1. BrowserWindow creates Tk window
-2. Embeds TkinterWeb HtmlFrame
+2. Embeds pywebview window
 3. Registers with App
 4. Injects IPC renderer script
 
@@ -197,7 +201,7 @@ Window creation and management.
 
 **Features:**
 - Tkinter window wrapper
-- TkinterWeb integration for HTML rendering
+- pywebview integration for rendering
 - Window configuration (size, position, title, etc.)
 - Preload script injection
 - Event handling
@@ -286,28 +290,33 @@ positron/
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | Backend | Python 3.8+ | Main process language |
-| GUI Framework | Tkinter | Native window management |
-| HTML Renderer | TkinterWeb | HTML/CSS display |
-| HTML Engine | Tkhtml3 | HTML 4.01 / CSS 2.1 parsing |
-| JS Engine | PythonMonkey | JavaScript execution |
+| Webview Wrapper | pywebview | Cross-platform webview |
+| Windows Engine | WebView2 (Chromium) | Modern browser on Windows |
+| macOS Engine | WebKit | System browser on macOS |
+| Linux Engine | WebKit2GTK | Browser on Linux |
+| JavaScript | Full V8/JavaScriptCore | Modern JS execution |
 | UI Framework | React 18 | Frontend framework |
 | Build Tool | Vite 5 | Dev server and bundling |
 
 ## Advantages
 
-✅ **Small bundle size** (~10MB vs Electron's ~150MB)
-✅ **Low memory usage**
+✅ **Small bundle size** (~5-10MB vs Electron's ~150MB)
+✅ **Lower memory usage** (uses system webview)
 ✅ **Full Python ecosystem**
 ✅ **Native Python integration**
 ✅ **Familiar Electron API**
 ✅ **Fast development with Vite**
+✅ **Full HTML5/CSS3/JavaScript support**
+✅ **Real React compatibility**
 
-## Limitations
+## Capabilities
 
-⚠️ Not a full web browser (no HTML5 APIs)
-⚠️ Limited JavaScript support (compared to V8)
-⚠️ CSS3 features partially supported
-⚠️ No service workers, WebGL, etc.
+✅ Modern web standards (HTML5, CSS3, ES6+)
+✅ Full React with hooks, context, everything
+✅ CSS Grid, Flexbox, animations
+✅ Modern JavaScript features
+✅ WebSockets, Fetch API, etc.
+⚠️ Platform-dependent features (check webview docs)
 
 ## Use Cases
 
@@ -324,7 +333,7 @@ Positron is perfect for:
 | Aspect | Electron | Positron |
 |--------|----------|----------|
 | Main Process | Node.js | Python |
-| Renderer | Chromium | TkinterWeb |
+| Renderer | Chromium | System WebView |
 | Bundle Size | ~150MB | ~10MB |
 | Memory | High | Low |
 | Backend Ecosystem | npm | PyPI |

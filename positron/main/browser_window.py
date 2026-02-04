@@ -133,25 +133,14 @@ class BrowserWindow:
             file_path = url[7:]  # Remove 'file://'
             self.load_file(file_path)
         else:
-            # For http/https URLs, we need to fetch and inject IPC
+            # For http/https URLs, load directly with TkinterWeb
+            # TkinterWeb will handle the content rendering
+            print(f"Loading URL: {url}")
             try:
-                import requests
-
-                response = requests.get(url, timeout=10)
-                response.raise_for_status()
-                html = response.text
-
-                # Inject IPC renderer script
-                html = self._inject_ipc_script(html)
-
-                if self._preload_script:
-                    html = self._inject_preload_script(html)
-
-                self.web_contents.load_html(html, base_url=url)
+                self.web_contents.load_url(url)
+                print("URL loaded successfully")
             except Exception as e:
                 print(f"Error loading URL {url}: {e}", file=sys.stderr)
-                # Fallback to direct load
-                self.web_contents.load_url(url)
 
     def load_file(self, file_path: str):
         """

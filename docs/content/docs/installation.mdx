@@ -73,20 +73,17 @@ cd positron
     ```
     
     This installs:
-    - TkinterWeb with **ALL** features ([full] installation)
-    - **PythonMonkey for JavaScript support (REQUIRED for React)**
-    - PIL for image support
-    - Brotli for compression
-    - CairoSVG for SVG support
-    - requests for HTTP support
+    - **pywebview** - System webview wrapper
+    - pythonnet (Windows) - For WebView2 support
+    - All required dependencies
   </Tab>
   
   <Tab value="Direct Installation">
     ```bash
-    pip install tkinterweb[full]
+    pip install pywebview
     ```
     
-    Installs TkinterWeb with all features including JavaScript support.
+    Installs pywebview with automatic platform detection.
   </Tab>
   
   <Tab value="Development Mode">
@@ -98,8 +95,8 @@ cd positron
   </Tab>
 </Tabs>
 
-<Callout type="warn">
-The `[full]` installation is **required** for React apps because they need JavaScript support via PythonMonkey.
+<Callout type="info">
+**pywebview** provides a real browser engine with full HTML5/CSS3/JavaScript support. It uses WebView2 (Windows), WebKit (macOS), or GTK WebKit (Linux) automatically.
 </Callout>
 
 ### Step 3: Verify Installation
@@ -152,51 +149,56 @@ positron/
 │   └── react-app/
 │       ├── node_modules/   # Created by npm install
 │       └── ...
-├── TkinterWeb/         # Reference only (not used)
+
 └── ...
 ```
 
 ## Troubleshooting
 
-### TkinterWeb not found
+### Pywebview not found
 
 **Error:**
 ```
-ImportError: No module named 'tkinterweb'
+ImportError: No module named 'webview'
 ```
 
 **Solution:**
 ```bash
-pip install tkinterweb[full]
+pip install pywebview
 ```
 
-### JavaScript not working in React app
+### WebView2 runtime missing (Windows only)
 
 **Symptoms:**
-- React app doesn't render
-- Console shows JavaScript errors
+- App won't start on Windows
+- Error about WebView2
+
+**Solution:**
+WebView2 is usually pre-installed on Windows 10/11. If not, download it:
+- https://developer.microsoft.com/microsoft-edge/webview2/
+
+### React app not loading
+
+**Symptoms:**
 - Blank page in window
+- Console errors
 
 **Solution:**
-Make sure you installed the `[full]` version with JavaScript support:
-```bash
-pip install tkinterweb[full]
-```
+1. Make sure dev server is running: `npm run dev`
+2. Check port 5173 is not blocked
+3. Try loading built version: `npm run build` then `win.load_file('dist/index.html')`
 
-Verify PythonMonkey is installed:
-```bash
-python -c "import pythonmonkey; print('✓ JavaScript support available')"
-```
+### Linux dependencies missing
 
-### Tkinter not found
-
-**Error:**
+**Error on Linux:**
 ```
-ModuleNotFoundError: No module named 'tkinter'
+ImportError: gi or webkit2gtk not found
 ```
 
 **Solution:**
-Install Tkinter for your platform (see Prerequisites section).
+```bash
+sudo apt-get install python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.0
+```
 
 ### npm command not found
 
@@ -294,7 +296,7 @@ deactivate
 
 - Use PowerShell or Command Prompt
 - Paths use backslashes: `C:\Users\...`
-- TkinterWeb fully supported on 64-bit Windows
+- WebView2 fully supported on Windows 10/11
 
 ### macOS
 
@@ -305,7 +307,7 @@ deactivate
 ### Linux
 
 - Tkinter might need separate installation
-- TkinterWeb binaries available for 64-bit Linux
+- GTK WebKit available for Linux
 - Use your distribution's package manager for dependencies
 
 ## Minimum Versions
@@ -313,23 +315,29 @@ deactivate
 | Package | Minimum Version | Recommended |
 |---------|----------------|-------------|
 | Python | 3.8 | 3.11+ |
-| TkinterWeb | 4.0.0 | Latest |
+| pywebview | 6.0 | Latest |
 | Node.js | 16.0.0 | 18+ LTS |
 | React | 18.0.0 | Latest |
 | Vite | 5.0.0 | Latest |
 
 ## Platform Support
 
-Positron works on all platforms that support Python and Tkinter:
+Positron works on all platforms with webview support:
 
-- ✅ Windows (7, 10, 11)
-- ✅ macOS (10.14+)
-- ✅ Linux (Ubuntu, Fedora, Arch, etc.)
+- ✅ **Windows 10/11** - Uses Microsoft Edge WebView2
+- ✅ **macOS 10.14+** - Uses system WebKit
+- ✅ **Linux** - Uses GTK WebKit (Ubuntu, Fedora, Arch, etc.)
 
-TkinterWeb binaries are available for:
-- Windows (32-bit and 64-bit)
-- macOS (Intel and Apple Silicon)
-- Linux (64-bit)
+### Platform-Specific Requirements
+
+**Windows:**
+- WebView2 Runtime (usually pre-installed)
+
+**macOS:**
+- No additional requirements (WebKit is built-in)
+
+**Linux:**
+- GTK 3 and WebKit2GTK packages
 
 ## Updating
 
@@ -354,7 +362,7 @@ To uninstall Positron:
 
 ```bash
 # Uninstall Python packages
-pip uninstall tkinterweb
+pip uninstall pywebview
 
 # Remove repository
 cd ..

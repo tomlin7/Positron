@@ -5,20 +5,24 @@ description: Understanding JavaScript execution in Positron through PythonMonkey
 
 # JavaScript Support
 
-Positron supports JavaScript execution in the renderer process through **PythonMonkey**, which provides a bridge between Python and JavaScript.
+Positron provides **full JavaScript support** through real browser engines via **pywebview**.
 
 ## Installation
 
-JavaScript support is included when you install TkinterWeb with the `[full]` extra:
+JavaScript support is built-in when you install pywebview:
 
 ```bash
-pip install tkinterweb[full]
+pip install pywebview
 ```
 
 Or using requirements.txt:
 ```bash
 pip install -r requirements.txt
 ```
+
+<Callout type="success">
+**pywebview gives you FULL modern JavaScript support** - ES6+, modules, async/await, everything!
+</Callout>
 
 ## How JavaScript Works in Positron
 
@@ -27,7 +31,8 @@ pip install -r requirements.txt
 ```
 ┌─────────────────────────────────┐
 │     React App (JavaScript)      │
-│  - Component rendering          │
+│  - Full React with hooks        │
+│  - Modern JavaScript (ES6+)     │
 │  - State management             │
 │  - Event handlers               │
 └────────────┬────────────────────┘
@@ -35,63 +40,64 @@ pip install -r requirements.txt
              │ Executed by
              │
 ┌────────────▼────────────────────┐
-│   PythonMonkey (JS Engine)      │
-│  - JavaScript execution         │
-│  - DOM manipulation             │
-│  - Browser APIs                 │
+│   Real Browser Engine           │
+│  - V8 (Windows via WebView2)    │
+│  - JavaScriptCore (macOS)       │
+│  - WebKit (Linux)               │
+│  - Full DOM APIs                │
+│  - Modern web standards         │
 └────────────┬────────────────────┘
              │
              │ Renders to
              │
 ┌────────────▼────────────────────┐
-│   TkinterWeb (HTML Renderer)    │
-│  - HTML/CSS display             │
-│  - Event handling               │
+│   Native WebView                │
+│  - HTML5/CSS3 display           │
+│  - GPU acceleration             │
+│  - Native scrolling             │
 └─────────────────────────────────┘
 ```
 
 ### What's Supported
 
-<Tabs items={['Supported', 'Partially Supported', 'Not Supported']}>
-  <Tab value="Supported">
-    - ✅ React and ReactDOM
-    - ✅ Modern JavaScript (ES6+)
-    - ✅ DOM manipulation
-    - ✅ Event handlers
-    - ✅ State management (useState, useEffect, etc.)
-    - ✅ Component lifecycle
-    - ✅ Basic browser APIs
-    - ✅ Console logging
-  </Tab>
-  
-  <Tab value="Partially Supported">
-    - ⚠️ Fetch API (use IPC to Python instead)
-    - ⚠️ LocalStorage (limited)
-    - ⚠️ Some newer Web APIs
-  </Tab>
-  
-  <Tab value="Not Supported">
-    - ❌ Service Workers
-    - ❌ WebGL
-    - ❌ WebAssembly
-    - ❌ Full Chromium APIs
-    - ❌ Some HTML5 APIs
-  </Tab>
-</Tabs>
+### Fully Supported
+
+✅ **React and all modern frameworks** - Vue, Angular, Svelte, etc.
+✅ **Modern JavaScript (ES6+)** - Arrow functions, async/await, classes, modules
+✅ **ES Modules** - Import/export, dynamic imports
+✅ **Full DOM API** - querySelector, addEventListener, everything
+✅ **Event handlers** - All DOM events work
+✅ **React hooks** - useState, useEffect, useContext, custom hooks
+✅ **Component lifecycle** - All React lifecycle methods
+✅ **Browser APIs** - Fetch, LocalStorage, SessionStorage, WebSockets
+✅ **Console API** - console.log, error, warn, etc.
+✅ **Modern CSS** - Grid, Flexbox, animations, transforms
+✅ **HTML5** - All modern HTML elements
+
+### Platform-Specific
+
+Some features depend on the underlying browser engine:
+
+- **WebGL**: Available on Windows (WebView2), check macOS/Linux
+- **WebRTC**: Supported on Windows/macOS, check Linux
+- **Service Workers**: Platform-dependent
+- **WebAssembly**: Supported on modern engines
 
 ## React Integration
 
-React works great with Positron because:
+React works **perfectly** with Positron because:
 
-1. **Vite compiles React to standard JavaScript**
-   - All JSX is transpiled to regular JavaScript
-   - PythonMonkey executes the compiled code
+1. **Real browser engine executes React**
+   - Vite dev server works out of the box
+   - All JSX is compiled and executed natively
+   - Hot module replacement works
    - No special configuration needed
 
-2. **TkinterWeb renders the resulting HTML/CSS**
-   - React manipulates the DOM
-   - TkinterWeb displays the DOM
-   - Updates happen reactively
+2. **Native rendering**
+   - React manipulates the real DOM
+   - Browser engine renders with GPU acceleration
+   - Full React DevTools support (platform-dependent)
+   - Updates happen reactively at native speed
 
 ### Example: React Component
 
@@ -113,7 +119,7 @@ function Counter() {
 }
 ```
 
-The compiled JavaScript from Vite is executed by PythonMonkey, and the resulting DOM is rendered by TkinterWeb.
+This is **real React** running in a **real browser engine** - exactly like it would in Chrome or Safari!
 
 ## Using JavaScript with IPC
 
@@ -310,10 +316,10 @@ declare global {
 
 ## Verifying JavaScript Support
 
-Test that JavaScript is working:
+Test that pywebview is installed:
 
 ```bash
-python -c "import pythonmonkey; print('✓ JavaScript support available')"
+python -c "import webview; print('✓ JavaScript support available via pywebview')"
 ```
 
 Run a simple test:
@@ -353,14 +359,14 @@ You should see:
 
 **Check installation:**
 ```bash
-pip list | grep -i pythonmonkey
+pip list | grep -i pywebview
 ```
 
-Should show: `pythonmonkey`
+Should show: `pywebview`
 
 **Reinstall if missing:**
 ```bash
-pip install tkinterweb[full] --force-reinstall
+pip install pywebview --force-reinstall
 ```
 
 ### React App Not Rendering
@@ -385,18 +391,24 @@ pip install tkinterweb[full] --force-reinstall
 ## Summary
 
 <Callout type="success">
-**Positron fully supports JavaScript for React apps** through PythonMonkey
+**Positron provides FULL JavaScript support for modern React apps** through pywebview and real browser engines!
 
-**Best practice:** UI in React (JS), logic in Python
+**What you get:**
+- ✅ Real React with all features
+- ✅ Modern JavaScript (ES6+, modules, async/await)
+- ✅ HTML5 and CSS3
+- ✅ Vite dev server works perfectly
+- ✅ Hot module replacement
+- ✅ All browser APIs (Fetch, WebSockets, etc.)
 
-**Installation:** `pip install tkinterweb[full]`
+**Installation:** `pip install pywebview`
 
-**Works great for:** Desktop apps with React frontend and Python backend
+**Best practice:** Build amazing UIs in React, powerful backends in Python
 </Callout>
 
 The combination of React's UI capabilities and Python's backend power makes Positron perfect for:
-- Data science dashboards
-- Machine learning tools
-- Automation interfaces
-- System utilities with modern UIs
-- Desktop applications that need both web tech and Python libraries
+- **Data science dashboards** - Pandas/NumPy backend, React frontend
+- **Machine learning tools** - TensorFlow/PyTorch with modern UI
+- **Automation interfaces** - Python automation with beautiful web UI
+- **Internal tools** - Enterprise apps with Python + React
+- **Desktop applications** - Native-feeling apps with web technologies

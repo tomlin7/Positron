@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // Vite config for Positron React app
 export default defineConfig({
@@ -7,6 +7,10 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    cors: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   },
-  base: './',
-})
+  base: "./",
+});

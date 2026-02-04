@@ -9,18 +9,27 @@ description: Detailed information about Positron dependencies
 
 ### Required (Runtime)
 
-**TkinterWeb** (`>=4.0.0`)
-- HTML/CSS rendering engine based on Tkhtml3
-- Provides the HtmlFrame widget for rendering React apps
-- **Install with: `pip install tkinterweb[full]`** (required for JavaScript)
+**pywebview** (`>=6.0`)
+- Cross-platform webview wrapper
+- Provides real browser engine for rendering web content
+- **Install with: `pip install pywebview`**
 
-The `[full]` extra includes:
-- `TkinterWeb-Tkhtml-Extras` - Enhanced features (border-radius, extra cursors)
-- `PIL` - Image support (PNG, JPG, etc.)
-- `Brotli` - Faster page loads on some sites
-- **`PythonMonkey` - JavaScript support (REQUIRED for React apps)**
-- `CairoSVG` or `PyGObject` - SVG image support
-- `requests` - HTTP requests support
+pywebview automatically uses:
+- **Windows**: Microsoft Edge WebView2 (via pythonnet)
+- **macOS**: System WebKit (built-in)
+- **Linux**: GTK WebKit2 (via PyGObject)
+
+### Platform-Specific Dependencies
+
+**Windows:**
+- `pythonnet` - For WebView2 COM interop (auto-installed)
+
+**Linux:**
+- `PyGObject` - For GTK bindings
+- System packages: `python3-gi`, `gir1.2-webkit2-4.0`
+
+**macOS:**
+- No additional Python packages needed
 
 ### Optional (Development)
 
@@ -65,30 +74,34 @@ npm install vite @vitejs/plugin-react
 
 **Python 3.8+**
 - Positron requires Python 3.8 or higher
-- Tkinter is usually included with Python
 
 **Node.js 16+**
 - Required for React development with Vite
 - npm or yarn package manager
 
-**Tkinter**
-- Usually included with Python
-- On some Linux systems, install separately:
+**WebView Runtime**
 
-<Tabs items={['Ubuntu/Debian', 'Fedora', 'Arch Linux']}>
-  <Tab value="Ubuntu/Debian">
-    ```bash
-    sudo apt-get install python3-tk
-    ```
+<Tabs items={['Windows', 'macOS', 'Linux']}>
+  <Tab value="Windows">
+    **Edge WebView2 Runtime**
+    - Usually pre-installed on Windows 10/11
+    - Download if needed: https://developer.microsoft.com/microsoft-edge/webview2/
   </Tab>
-  <Tab value="Fedora">
-    ```bash
-    sudo dnf install python3-tkinter
-    ```
+  <Tab value="macOS">
+    **System WebKit**
+    - Built into macOS, no installation needed
   </Tab>
-  <Tab value="Arch Linux">
+  <Tab value="Linux">
+    **GTK and WebKit2GTK**
     ```bash
-    sudo pacman -S tk
+    # Ubuntu/Debian
+    sudo apt-get install python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.0
+    
+    # Fedora
+    sudo dnf install python3-gobject gtk3 webkit2gtk3
+    
+    # Arch
+    sudo pacman -S python-gobject gtk3 webkit2gtk
     ```
   </Tab>
 </Tabs>
@@ -124,30 +137,18 @@ pip install positron-framework
 
 ```
 positron-framework
-└── tkinterweb[full] (>=4.0.0)
-    ├── TkinterWeb-Tkhtml (core engine)
-    ├── TkinterWeb-Tkhtml-Extras (enhanced features)
-    ├── PIL (image support)
-    ├── Brotli (compression)
-    ├── PythonMonkey (JavaScript support - REQUIRED)
-    ├── CairoSVG (SVG support)
-    └── requests (HTTP support)
+└── pywebview (>=6.0)
+    ├── bottle (built-in HTTP server)
+    ├── proxy_tools (proxy handling)
+    └── Platform-specific:
+        ├── Windows: pythonnet (WebView2 COM)
+        ├── macOS: pyobjc (WebKit bridge - optional)
+        └── Linux: PyGObject (GTK/WebKit)
 ```
 
 <Callout type="info">
-The `[full]` installation is required because React apps need JavaScript support via PythonMonkey.
+**pywebview** provides full HTML5/CSS3/JavaScript support through native browser engines, giving you complete React compatibility out of the box!
 </Callout>
-
-## About the TkinterWeb Folder
-
-The `TkinterWeb/` folder in this repository is **for reference only**.
-
-- Positron uses TkinterWeb installed via pip, not this local folder
-- This folder is kept for:
-  - Understanding internal workings
-  - Development reference
-  - Offline code browsing
-- You can safely delete it without affecting Positron
 
 ## Verifying Installation
 
@@ -161,9 +162,9 @@ from positron.renderer import DevServer
 
 print("✓ Positron imports successful!")
 
-# Test TkinterWeb import
-from tkinterweb import HtmlFrame
-print("✓ TkinterWeb import successful!")
+# Test pywebview import
+import webview
+print("✓ pywebview import successful!")
 ```
 
 Run the test:
@@ -173,16 +174,19 @@ python -c "from positron import App, BrowserWindow; from positron.ipc import ipc
 
 ## Troubleshooting
 
-### ImportError: No module named 'tkinterweb'
+### ImportError: No module named 'webview'
 
 **Solution:**
 ```bash
-pip install tkinterweb[full]
+pip install pywebview
 ```
 
-### ImportError: No module named 'tkinter'
+### Linux: ImportError: gi module not found
 
-**Solution:** Install Tkinter for your system (see System Dependencies above)
+**Solution:** Install GTK and WebKit dependencies
+```bash
+sudo apt-get install python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.0
+```
 
 ### React app won't start
 
@@ -218,28 +222,31 @@ dev_server = DevServer(
 | Package | Minimum Version | Recommended |
 |---------|----------------|-------------|
 | Python | 3.8 | 3.11+ |
-| TkinterWeb | 4.0.0 | Latest |
+| pywebview | 6.0 | Latest |
 | Node.js | 16.0.0 | 18+ LTS |
 | React | 18.0.0 | Latest |
 | Vite | 5.0.0 | Latest |
 
 ## Platform Support
 
-Positron works on all platforms that support Python and Tkinter:
+Positron works on all platforms with webview support:
 
-- ✅ Windows (7, 10, 11)
-- ✅ macOS (10.14+)
-- ✅ Linux (Ubuntu, Fedora, Arch, etc.)
+- ✅ **Windows 10/11** - Edge WebView2
+- ✅ **macOS 10.14+** - System WebKit
+- ✅ **Linux** - GTK WebKit (Ubuntu, Fedora, Arch, etc.)
 
-TkinterWeb binaries are available for:
-- Windows (32-bit and 64-bit)
-- macOS (Intel and Apple Silicon)
-- Linux (64-bit)
+### Browser Engines Used
+
+| Platform | Engine | Version |
+|----------|--------|---------|
+| Windows 10/11 | Chromium (EdgeHTML) | Latest WebView2 |
+| macOS | WebKit | System version |
+| Linux | WebKit2GTK | 2.x |
 
 ## License Compatibility
 
 All dependencies are compatible with MIT license:
-- TkinterWeb: MIT License
+- pywebview: BSD License
 - React: MIT License
 - Vite: MIT License
 - Positron: MIT License
