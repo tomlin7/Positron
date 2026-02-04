@@ -1,0 +1,9 @@
+{
+  "title": "API Reference",
+  "pages": [
+    "app",
+    "browser-window",
+    "ipc",
+    "dev-server"
+  ]
+}

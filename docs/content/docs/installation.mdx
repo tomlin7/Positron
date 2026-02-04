@@ -1,4 +1,9 @@
-# Positron Installation Guide
+---
+title: Installation
+description: Complete installation instructions for Positron framework
+---
+
+# Installation
 
 Complete installation instructions for Positron framework.
 
@@ -29,23 +34,26 @@ python -c "import tkinter; print('Tkinter OK')"
 
 ### Installing Tkinter (if needed)
 
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install python3-tk
-```
-
-**Fedora:**
-```bash
-sudo dnf install python3-tkinter
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S tk
-```
-
-**macOS/Windows:**
-Tkinter is usually pre-installed with Python.
+<Tabs items={['Ubuntu/Debian', 'Fedora', 'Arch Linux', 'macOS/Windows']}>
+  <Tab value="Ubuntu/Debian">
+    ```bash
+    sudo apt-get install python3-tk
+    ```
+  </Tab>
+  <Tab value="Fedora">
+    ```bash
+    sudo dnf install python3-tkinter
+    ```
+  </Tab>
+  <Tab value="Arch Linux">
+    ```bash
+    sudo pacman -S tk
+    ```
+  </Tab>
+  <Tab value="macOS/Windows">
+    Tkinter is usually pre-installed with Python.
+  </Tab>
+</Tabs>
 
 ## Installation Steps
 
@@ -58,34 +66,41 @@ cd positron
 
 ### Step 2: Install Python Dependencies
 
-**Option A: Using requirements.txt (Recommended)**
-```bash
-pip install -r requirements.txt
-```
+<Tabs items={['requirements.txt (Recommended)', 'Direct Installation', 'Development Mode']}>
+  <Tab value="requirements.txt (Recommended)">
+    ```bash
+    pip install -r requirements.txt
+    ```
+    
+    This installs:
+    - TkinterWeb with **ALL** features ([full] installation)
+    - **PythonMonkey for JavaScript support (REQUIRED for React)**
+    - PIL for image support
+    - Brotli for compression
+    - CairoSVG for SVG support
+    - requests for HTTP support
+  </Tab>
+  
+  <Tab value="Direct Installation">
+    ```bash
+    pip install tkinterweb[full]
+    ```
+    
+    Installs TkinterWeb with all features including JavaScript support.
+  </Tab>
+  
+  <Tab value="Development Mode">
+    ```bash
+    pip install -e .
+    ```
+    
+    Installs Positron in editable mode for development.
+  </Tab>
+</Tabs>
 
-This installs:
-- TkinterWeb with **ALL** features ([full] installation)
-- **PythonMonkey for JavaScript support (REQUIRED for React)**
-- PIL for image support
-- Brotli for compression
-- CairoSVG for SVG support
-- requests for HTTP support
-
-**Option B: Direct Installation**
-```bash
-pip install tkinterweb[full]
-```
-
-Installs TkinterWeb with all features including JavaScript support.
-
-**⚠️ Important:** The `[full]` installation is **required** for React apps because they need JavaScript support via PythonMonkey.
-
-**Option C: Development Installation**
-```bash
-pip install -e .
-```
-
-Installs Positron in editable mode for development.
+<Callout type="warn">
+The `[full]` installation is **required** for React apps because they need JavaScript support via PythonMonkey.
+</Callout>
 
 ### Step 3: Verify Installation
 
@@ -143,7 +158,7 @@ positron/
 
 ## Troubleshooting
 
-### Problem: TkinterWeb not found
+### TkinterWeb not found
 
 **Error:**
 ```
@@ -155,7 +170,7 @@ ImportError: No module named 'tkinterweb'
 pip install tkinterweb[full]
 ```
 
-### Problem: JavaScript not working in React app
+### JavaScript not working in React app
 
 **Symptoms:**
 - React app doesn't render
@@ -173,7 +188,7 @@ Verify PythonMonkey is installed:
 python -c "import pythonmonkey; print('✓ JavaScript support available')"
 ```
 
-### Problem: Tkinter not found
+### Tkinter not found
 
 **Error:**
 ```
@@ -183,7 +198,7 @@ ModuleNotFoundError: No module named 'tkinter'
 **Solution:**
 Install Tkinter for your platform (see Prerequisites section).
 
-### Problem: npm command not found
+### npm command not found
 
 **Error:**
 ```
@@ -193,7 +208,7 @@ npm: command not found
 **Solution:**
 Install Node.js from https://nodejs.org/
 
-### Problem: Dev server won't start
+### Dev server won't start
 
 **Error:**
 ```
@@ -205,7 +220,7 @@ Error starting dev server
 2. Check if port 5173 is available
 3. Try a different port in `vite.config.js`
 
-### Problem: Window shows but is blank
+### Window shows but is blank
 
 **Possible causes:**
 1. Dev server didn't start properly
@@ -229,22 +244,28 @@ app.run()
 "
 ```
 
-### Problem: Python path issues
+### Python path issues
 
 If you get import errors when running examples:
 
-**Solution 1:** Install in development mode
-```bash
-cd /path/to/positron
-pip install -e .
-```
-
-**Solution 2:** Use the sys.path trick (already in examples)
-```python
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-```
+<Tabs items={['Solution 1', 'Solution 2']}>
+  <Tab value="Solution 1">
+    Install in development mode:
+    ```bash
+    cd /path/to/positron
+    pip install -e .
+    ```
+  </Tab>
+  
+  <Tab value="Solution 2">
+    Use the sys.path trick (already in examples):
+    ```python
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    ```
+  </Tab>
+</Tabs>
 
 ## Virtual Environment (Recommended)
 
@@ -287,25 +308,28 @@ deactivate
 - TkinterWeb binaries available for 64-bit Linux
 - Use your distribution's package manager for dependencies
 
-## Next Steps
+## Minimum Versions
 
-After installation:
+| Package | Minimum Version | Recommended |
+|---------|----------------|-------------|
+| Python | 3.8 | 3.11+ |
+| TkinterWeb | 4.0.0 | Latest |
+| Node.js | 16.0.0 | 18+ LTS |
+| React | 18.0.0 | Latest |
+| Vite | 5.0.0 | Latest |
 
-1. **Try the example:**
-   ```bash
-   cd examples/react-app
-   npm install
-   python main.py
-   ```
+## Platform Support
 
-2. **Read the docs:**
-   - [README.md](README.md) - Full API reference
-   - [QUICKSTART.md](QUICKSTART.md) - Quick start guide
-   - [DEPENDENCIES.md](DEPENDENCIES.md) - Dependency details
+Positron works on all platforms that support Python and Tkinter:
 
-3. **Create your app:**
-   - Copy the example app as a template
-   - Or start from scratch following QUICKSTART.md
+- ✅ Windows (7, 10, 11)
+- ✅ macOS (10.14+)
+- ✅ Linux (Ubuntu, Fedora, Arch, etc.)
+
+TkinterWeb binaries are available for:
+- Windows (32-bit and 64-bit)
+- macOS (Intel and Apple Silicon)
+- Linux (64-bit)
 
 ## Updating
 
@@ -341,7 +365,7 @@ rm -rf positron
 
 If you encounter issues:
 
-1. Check [DEPENDENCIES.md](DEPENDENCIES.md) for version requirements
+1. Check [Dependencies](/docs/dependencies) for version requirements
 2. Search [GitHub Issues](https://github.com/yourusername/positron/issues)
 3. Create a new issue with:
    - Your OS and Python version

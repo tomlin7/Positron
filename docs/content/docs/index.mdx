@@ -1,0 +1,106 @@
+---
+title: Introduction
+description: Build cross-platform desktop apps with React and Python
+---
+
+# Positron
+
+**Build cross-platform desktop apps with React and Python**
+
+Positron is an Electron-like framework that lets you create desktop applications using React for the UI and Python for the backend. It uses TkinterWeb to render your React apps in native windows.
+
+```python
+from positron import App, BrowserWindow
+
+app = App()
+
+def create_window():
+    win = BrowserWindow({'width': 800, 'height': 600})
+    win.load_url('http://localhost:5173')
+
+app.when_ready(create_window)
+app.run()
+```
+
+## Features
+
+- **Familiar API**: If you know Electron, you know Positron
+- **React Support**: Full support for modern React with Vite
+- **Python Backend**: Access to the entire Python ecosystem
+- **IPC Communication**: Bidirectional messaging between React and Python
+- **Native Windows**: Real native window management with Tkinter
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+
+## Why Positron?
+
+### Use Python Instead of Node.js
+- Leverage Python's rich ecosystem (AI/ML, data science, automation)
+- Write backend logic in Python instead of JavaScript
+- Access native system APIs through Python
+
+### Electron-like Developer Experience
+- Same API structure as Electron
+- Hot reload during development
+- Familiar project structure
+
+### Lightweight Alternative
+- Uses TkinterWeb instead of Chromium
+- Smaller bundle sizes
+- Lower memory footprint
+
+## Comparison with Electron
+
+| Feature | Electron | Positron |
+|---------|----------|----------|
+| Backend Language | Node.js | Python |
+| Renderer | Chromium | TkinterWeb (Tkhtml3) |
+| HTML/CSS Support | HTML5, CSS3 | HTML 4.01, CSS 2.1 |
+| JavaScript | Full V8 | Partial (basic DOM) |
+| IPC API | ✅ Same | ✅ Same |
+| Window API | ✅ Same | ✅ Same |
+| App Lifecycle | ✅ Same | ✅ Same |
+| Bundle Size | Large (~150MB) | Small (~10MB) |
+| Memory Usage | High | Low |
+
+## Supported Technologies
+
+**Frontend**
+- ✅ React (with Vite or Webpack)
+- ✅ HTML 4.01
+- ✅ CSS 2.1 (+ border-radius on 64-bit)
+- ✅ JavaScript (via PythonMonkey - included with [full] installation)
+- ✅ Images (PNG, JPG, SVG)
+
+**Backend (Python)**
+- ✅ Any Python library
+- ✅ Machine Learning (TensorFlow, PyTorch)
+- ✅ Data Science (NumPy, Pandas)
+- ✅ Web Scraping (Requests, BeautifulSoup)
+- ✅ Automation (Selenium, PyAutoGUI)
+- ✅ Database (SQLite, PostgreSQL, MongoDB)
+
+## Roadmap
+
+- [x] Core architecture (Main + Renderer processes)
+- [x] BrowserWindow API
+- [x] App lifecycle management
+- [x] IPC communication
+- [x] React/Vite integration
+- [ ] Menu API
+- [ ] Dialog API
+- [ ] Tray API
+- [ ] Notifications
+- [ ] Auto-updater
+- [ ] Application packaging
+- [ ] More examples
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Credits
+
+Built on top of:
+- [TkinterWeb](https://github.com/Andereoo/TkinterWeb) - HTML rendering widget
+- [Tkhtml3](http://tkhtml.tcl.tk/) - HTML/CSS engine
+- Inspired by [Electron](https://www.electronjs.org/)

@@ -1,0 +1,434 @@
+---
+title: IPC
+description: Inter-Process Communication between main and renderer processes
+---
+
+# IPC (Inter-Process Communication)
+
+Communicate between the main process (Python) and renderer process (JavaScript).
+
+## Overview
+
+Positron provides two types of IPC:
+
+1. **One-way messaging**: Send messages without waiting for response
+2. **Request-response**: Send request and get response (promise-based)
+
+## Main Process (Python)
+
+### Import
+
+```python
+from positron.ipc import ipc_main
+```
+
+### Handling Requests (invoke/handle)
+
+Use `@ipc_main.handle()` decorator for request-response pattern.
+
+```python
+@ipc_main.handle('get-user-data')
+def get_user_data(event, user_id):
+    # Process request
+    user = database.get_user(user_id)
+    return {
+        'id': user.id,
+        'name': user.name,
+        'email': user.email
+    }
+```
+
+**Features:**
+- Return value is sent back to renderer
+- Can return any JSON-serializable data
+- Async-like behavior (renderer waits for response)
+
+### Listening to Messages (send/on)
+
+Use `@ipc_main.on()` decorator for one-way messages.
+
+```python
+@ipc_main.on('log-message')
+def log_message(event, message):
+    print(f"Received: {message}")
+    # No return value
+```
+
+### Replying to Messages
+
+Use `event.reply()` to send messages back.
+
+```python
+@ipc_main.on('process-data')
+def process_data(event, data):
+    result = process(data)
+    event.reply('data-processed', result)
+```
+
+### One-time Listeners
+
+Use `ipc_main.once()` for one-time event handlers.
+
+```python
+def handle_once(event, data):
+    print(f"Will only handle once: {data}")
+
+ipc_main.once('one-time-event', handle_once)
+```
+
+### Removing Listeners
+
+```python
+# Remove specific listener
+ipc_main.remove_listener('channel-name')
+
+# Remove all listeners for a channel
+ipc_main.remove_all_listeners('channel-name')
+
+# Remove all listeners
+ipc_main.remove_all_listeners()
+```
+
+## Renderer Process (JavaScript)
+
+The `ipcRenderer` API is automatically available in all pages as `window.ipcRenderer`.
+
+### Sending Requests (invoke)
+
+Send a request and wait for response.
+
+```javascript
+// React component
+const handleClick = async () => {
+  try {
+    const result = await window.ipcRenderer.invoke('get-user-data', 123)
+    console.log(result)  // { id: 123, name: '...', email: '...' }
+  } catch (error) {
+    console.error('IPC Error:', error)
+  }
+}
+```
+
+### Sending One-way Messages (send)
+
+Send a message without waiting for response.
+
+```javascript
+window.ipcRenderer.send('log-message', 'Hello from renderer!')
+```
+
+### Receiving Messages (on)
+
+Listen for messages from main process.
+
+```javascript
+window.ipcRenderer.on('data-processed', (event, result) => {
+  console.log('Data processed:', result)
+})
+```
+
+### One-time Listeners
+
+```javascript
+window.ipcRenderer.once('one-time-event', (event, data) => {
+  console.log('Will only handle once:', data)
+})
+```
+
+### Removing Listeners
+
+```javascript
+// Remove specific listener
+window.ipcRenderer.removeListener('channel-name', callback)
+
+// Remove all listeners for a channel
+window.ipcRenderer.removeAllListeners('channel-name')
+
+// Remove all listeners
+window.ipcRenderer.removeAllListeners()
+```
+
+## Complete Examples
+
+### Example 1: Fetching Data
+
+**Python (main.py):**
+```python
+from positron import App, BrowserWindow
+from positron.ipc import ipc_main
+import requests
+
+@ipc_main.handle('fetch-data')
+def fetch_data(event, url):
+    try:
+        response = requests.get(url)
+        return response.json()
+    except Exception as e:
+        return {'error': str(e)}
+
+app = App()
+
+def create_window():
+    win = BrowserWindow({'width': 800, 'height': 600})
+    win.load_url('http://localhost:5173')
+
+app.when_ready(create_window)
+app.run()
+```
+
+**React (App.jsx):**
+```jsx
+import { useState } from 'react'
+
+function App() {
+  const [data, setData] = useState(null)
+  
+  const fetchData = async () => {
+    const result = await window.ipcRenderer.invoke(
+      'fetch-data',
+      'https://api.example.com/data'
+    )
+    setData(result)
+  }
+  
+  return (
+    <div>
+      <button onClick={fetchData}>Fetch Data</button>
+      {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+    </div>
+  )
+}
+```
+
+### Example 2: File Processing
+
+**Python (main.py):**
+```python
+from positron.ipc import ipc_main
+import pandas as pd
+
+@ipc_main.handle('process-csv')
+def process_csv(event, filepath):
+    try:
+        df = pd.read_csv(filepath)
+        # Process data
+        summary = {
+            'rows': len(df),
+            'columns': list(df.columns),
+            'preview': df.head().to_dict('records')
+        }
+        return summary
+    except Exception as e:
+        return {'error': str(e)}
+
+@ipc_main.on('save-data')
+def save_data(event, filepath, data):
+    df = pd.DataFrame(data)
+    df.to_csv(filepath, index=False)
+    event.reply('data-saved', {'success': True, 'path': filepath})
+```
+
+**React (App.jsx):**
+```jsx
+function DataProcessor() {
+  const [summary, setSummary] = useState(null)
+  
+  const processFile = async (filepath) => {
+    const result = await window.ipcRenderer.invoke('process-csv', filepath)
+    setSummary(result)
+  }
+  
+  const saveData = (filepath, data) => {
+    window.ipcRenderer.send('save-data', filepath, data)
+  }
+  
+  useEffect(() => {
+    window.ipcRenderer.on('data-saved', (event, result) => {
+      console.log('Saved:', result.path)
+    })
+    
+    return () => {
+      window.ipcRenderer.removeAllListeners('data-saved')
+    }
+  }, [])
+  
+  return (
+    <div>
+      <button onClick={() => processFile('data.csv')}>
+        Process CSV
+      </button>
+      {summary && <div>{summary.rows} rows loaded</div>}
+    </div>
+  )
+}
+```
+
+### Example 3: Two-way Communication
+
+**Python (main.py):**
+```python
+from positron.ipc import ipc_main
+
+@ipc_main.on('start-process')
+def start_process(event, options):
+    # Start long-running process
+    for i in range(10):
+        time.sleep(0.5)
+        # Send progress updates
+        event.reply('process-progress', {
+            'percent': (i + 1) * 10,
+            'message': f'Step {i + 1}/10'
+        })
+    
+    event.reply('process-complete', {'success': True})
+```
+
+**React (App.jsx):**
+```jsx
+function ProgressTracker() {
+  const [progress, setProgress] = useState(0)
+  const [message, setMessage] = useState('')
+  
+  useEffect(() => {
+    window.ipcRenderer.on('process-progress', (event, data) => {
+      setProgress(data.percent)
+      setMessage(data.message)
+    })
+    
+    window.ipcRenderer.on('process-complete', () => {
+      setMessage('Complete!')
+    })
+    
+    return () => {
+      window.ipcRenderer.removeAllListeners('process-progress')
+      window.ipcRenderer.removeAllListeners('process-complete')
+    }
+  }, [])
+  
+  const startProcess = () => {
+    window.ipcRenderer.send('start-process', { mode: 'fast' })
+  }
+  
+  return (
+    <div>
+      <button onClick={startProcess}>Start</button>
+      <div>Progress: {progress}%</div>
+      <div>{message}</div>
+    </div>
+  )
+}
+```
+
+## Best Practices
+
+### Use invoke/handle for request-response
+
+```javascript
+// ✅ Good - wait for response
+const result = await window.ipcRenderer.invoke('get-data')
+
+// ❌ Bad - using send/on for request-response is verbose
+window.ipcRenderer.send('get-data')
+window.ipcRenderer.on('data-response', callback)
+```
+
+### Clean up event listeners in React
+
+```jsx
+// ✅ Good - cleanup in useEffect
+useEffect(() => {
+  const handler = (event, data) => {
+    console.log(data)
+  }
+  
+  window.ipcRenderer.on('my-event', handler)
+  
+  return () => {
+    window.ipcRenderer.removeListener('my-event', handler)
+  }
+}, [])
+
+// ❌ Bad - no cleanup, causes memory leaks
+useEffect(() => {
+  window.ipcRenderer.on('my-event', (event, data) => {
+    console.log(data)
+  })
+}, [])
+```
+
+### Handle errors gracefully
+
+```python
+# ✅ Good
+@ipc_main.handle('risky-operation')
+def risky_operation(event, data):
+    try:
+        result = perform_operation(data)
+        return {'success': True, 'data': result}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+```
+
+```javascript
+// ✅ Good
+try {
+  const result = await window.ipcRenderer.invoke('risky-operation', data)
+  if (result.success) {
+    // Handle success
+  } else {
+    // Handle error
+    console.error(result.error)
+  }
+} catch (error) {
+  console.error('IPC failed:', error)
+}
+```
+
+### Use TypeScript for type safety
+
+```typescript
+interface IPCRenderer {
+  send(channel: string, ...args: any[]): void
+  invoke(channel: string, ...args: any[]): Promise<any>
+  on(channel: string, callback: (event: any, ...args: any[]) => void): void
+  once(channel: string, callback: (event: any, ...args: any[]) => void): void
+  removeListener(channel: string, callback?: Function): void
+  removeAllListeners(channel?: string): void
+}
+
+declare global {
+  interface Window {
+    ipcRenderer: IPCRenderer
+  }
+}
+```
+
+## Security Considerations
+
+<Callout type="warn">
+- Never trust data from the renderer process
+- Always validate and sanitize input in IPC handlers
+- Be careful with file paths and system operations
+- Use context isolation (enabled by default)
+</Callout>
+
+```python
+# ✅ Good - validate input
+@ipc_main.handle('read-file')
+def read_file(event, filepath):
+    # Validate filepath
+    if not filepath.startswith('/safe/directory'):
+        return {'error': 'Invalid path'}
+    
+    try:
+        with open(filepath, 'r') as f:
+            return {'content': f.read()}
+    except Exception as e:
+        return {'error': str(e)}
+```
+
+## See Also
+
+- [App](/docs/api/app) - Application lifecycle
+- [BrowserWindow](/docs/api/browser-window) - Window management
+- [Architecture](/docs/architecture) - Understanding processes

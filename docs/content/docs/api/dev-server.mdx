@@ -1,0 +1,400 @@
+---
+title: DevServer
+description: Development server integration for Vite and other build tools
+---
+
+# DevServer
+
+Integrate development servers like Vite, Webpack Dev Server, or any HTTP dev server with your Positron app.
+
+## Import
+
+```python
+from positron.renderer import DevServer
+```
+
+## Basic Usage
+
+```python
+from pathlib import Path
+
+dev_server = DevServer(
+    cwd=str(Path(__file__).parent),
+    command='npm run dev',
+    port=5173
+)
+
+dev_server.start()
+url = dev_server.get_url()
+win.load_url(url)
+```
+
+## Constructor
+
+```python
+DevServer(
+    cwd='.',                    # Working directory
+    command='npm run dev',      # Command to start server
+    port=5173,                  # Port to wait for
+    host='localhost',           # Host address
+    wait_timeout=30             # Timeout in seconds
+)
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `cwd` | str | `'.'` | Working directory for the command |
+| `command` | str | Required | Command to start the dev server |
+| `port` | int | `5173` | Port the dev server will use |
+| `host` | str | `'localhost'` | Host address |
+| `wait_timeout` | int | `30` | Seconds to wait for server to start |
+
+## Methods
+
+### start()
+
+Start the development server.
+
+```python
+dev_server.start()
+```
+
+**Behavior:**
+1. Runs the command in specified directory
+2. Waits for server to be available on port
+3. Streams output to console
+4. Raises exception if timeout exceeded
+
+### stop()
+
+Stop the development server.
+
+```python
+dev_server.stop()
+```
+
+**Behavior:**
+- Terminates the server process
+- Cleans up resources
+
+### get_url()
+
+Get the server URL.
+
+```python
+url = dev_server.get_url()  # Returns: 'http://localhost:5173'
+```
+
+## Complete Examples
+
+### Example 1: Vite Dev Server
+
+```python
+from positron import App, BrowserWindow
+from positron.renderer import DevServer
+from pathlib import Path
+
+app = App()
+
+def create_window():
+    win = BrowserWindow({
+        'width': 1000,
+        'height': 700,
+        'title': 'Vite App'
+    })
+    
+    # Start Vite dev server
+    dev_server = DevServer(
+        cwd=str(Path(__file__).parent),
+        command='npm run dev',
+        port=5173
+    )
+    dev_server.start()
+    
+    # Load from dev server
+    win.load_url(dev_server.get_url())
+
+app.when_ready(create_window)
+app.run()
+```
+
+### Example 2: Custom Port
+
+```python
+dev_server = DevServer(
+    cwd='./frontend',
+    command='npm run dev -- --port 3000',
+    port=3000,
+    host='localhost'
+)
+dev_server.start()
+win.load_url(dev_server.get_url())
+```
+
+### Example 3: Context Manager
+
+```python
+from pathlib import Path
+
+def create_window():
+    win = BrowserWindow({'width': 800, 'height': 600})
+    
+    # Auto cleanup with context manager
+    with DevServer(
+        cwd=str(Path(__file__).parent),
+        command='npm run dev'
+    ) as server:
+        win.load_url(server.get_url())
+```
+
+### Example 4: Webpack Dev Server
+
+```python
+dev_server = DevServer(
+    cwd='./app',
+    command='webpack serve',
+    port=8080,
+    wait_timeout=60  # Webpack can take longer to start
+)
+dev_server.start()
+```
+
+### Example 5: Error Handling
+
+```python
+def create_window():
+    win = BrowserWindow({'width': 800, 'height': 600})
+    
+    try:
+        dev_server = DevServer(
+            cwd=str(Path(__file__).parent),
+            command='npm run dev',
+            port=5173,
+            wait_timeout=30
+        )
+        dev_server.start()
+        win.load_url(dev_server.get_url())
+    except TimeoutError:
+        print("Dev server failed to start in time")
+        win.load_html('<h1>Error: Dev server failed to start</h1>')
+    except Exception as e:
+        print(f"Error starting dev server: {e}")
+        win.close()
+```
+
+## Vite Configuration
+
+For Vite projects, create or update `vite.config.js`:
+
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    strictPort: true,  // Fail if port is already in use
+    host: 'localhost'
+  }
+})
+```
+
+**package.json:**
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  }
+}
+```
+
+## Best Practices
+
+### Use Path for cross-platform compatibility
+
+```python
+# ✅ Good - works on all platforms
+from pathlib import Path
+cwd = str(Path(__file__).parent)
+
+# ❌ Bad - hardcoded path separator
+cwd = './frontend'
+```
+
+### Set appropriate timeout
+
+```python
+# ✅ Good - longer timeout for slower builds
+dev_server = DevServer(
+    cwd='.',
+    command='webpack serve',
+    port=8080,
+    wait_timeout=60  # Webpack can be slow
+)
+
+# ❌ Bad - too short timeout
+dev_server = DevServer(
+    cwd='.',
+    command='webpack serve',
+    wait_timeout=5  # Likely to timeout
+)
+```
+
+### Use context manager for cleanup
+
+```python
+# ✅ Good - auto cleanup
+with DevServer(cwd='.', command='npm run dev') as server:
+    win.load_url(server.get_url())
+
+# ⚠️ OK but manual - remember to stop()
+dev_server = DevServer(cwd='.', command='npm run dev')
+dev_server.start()
+try:
+    win.load_url(dev_server.get_url())
+finally:
+    dev_server.stop()
+```
+
+### Check dependencies before starting
+
+```python
+# ✅ Good - check if node_modules exists
+import os
+from pathlib import Path
+
+def create_window():
+    project_dir = Path(__file__).parent
+    node_modules = project_dir / 'node_modules'
+    
+    if not node_modules.exists():
+        print("Please run 'npm install' first")
+        return
+    
+    dev_server = DevServer(
+        cwd=str(project_dir),
+        command='npm run dev'
+    )
+    dev_server.start()
+    # ...
+```
+
+## Troubleshooting
+
+### Dev Server Not Starting
+
+**Problem:** Timeout error when starting
+
+**Solutions:**
+1. Check if port is already in use:
+   ```bash
+   # Check what's using port 5173
+   lsof -i :5173  # macOS/Linux
+   netstat -ano | findstr :5173  # Windows
+   ```
+
+2. Increase timeout:
+   ```python
+   dev_server = DevServer(
+       cwd='.',
+       command='npm run dev',
+       wait_timeout=60  # Increase timeout
+   )
+   ```
+
+3. Check if dependencies are installed:
+   ```bash
+   cd your-project
+   npm install
+   ```
+
+### Port Already in Use
+
+**Problem:** Port 5173 is already in use
+
+**Solution:** Use a different port
+
+```python
+# vite.config.js
+export default defineConfig({
+  server: {
+    port: 5174  // Change port
+  }
+})
+```
+
+```python
+# main.py
+dev_server = DevServer(
+    cwd='.',
+    command='npm run dev',
+    port=5174  # Match new port
+)
+```
+
+### Output Not Showing
+
+**Problem:** Can't see dev server output
+
+**Solution:** Dev server output is automatically streamed to console. Check your terminal.
+
+### Command Not Found
+
+**Problem:** `npm: command not found`
+
+**Solution:** Make sure Node.js is installed and in PATH:
+```bash
+node --version
+npm --version
+```
+
+## Common Patterns
+
+### Development vs Production
+
+```python
+import os
+from pathlib import Path
+
+def create_window():
+    win = BrowserWindow({'width': 1000, 'height': 700})
+    
+    if os.getenv('POSITRON_ENV') == 'production':
+        # Load built files
+        win.load_file('dist/index.html')
+    else:
+        # Use dev server
+        dev_server = DevServer(
+            cwd=str(Path(__file__).parent),
+            command='npm run dev'
+        )
+        dev_server.start()
+        win.load_url(dev_server.get_url())
+```
+
+### Multiple Dev Servers
+
+```python
+def create_window():
+    # Frontend window
+    frontend_win = BrowserWindow({'width': 1000, 'height': 700})
+    frontend_server = DevServer(cwd='./frontend', port=5173)
+    frontend_server.start()
+    frontend_win.load_url(frontend_server.get_url())
+    
+    # Admin panel window
+    admin_win = BrowserWindow({'width': 800, 'height': 600})
+    admin_server = DevServer(cwd='./admin', port=5174)
+    admin_server.start()
+    admin_win.load_url(admin_server.get_url())
+```
+
+## See Also
+
+- [BrowserWindow](/docs/api/browser-window) - Loading content in windows
+- [Getting Started](/docs/getting-started) - Setting up a project
+- [Architecture](/docs/architecture) - Understanding the development workflow

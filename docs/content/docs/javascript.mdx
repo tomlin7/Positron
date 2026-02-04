@@ -1,4 +1,9 @@
-# JavaScript Support in Positron
+---
+title: JavaScript Support
+description: Understanding JavaScript execution in Positron through PythonMonkey
+---
+
+# JavaScript Support
 
 Positron supports JavaScript execution in the renderer process through **PythonMonkey**, which provides a bridge between Python and JavaScript.
 
@@ -47,27 +52,32 @@ pip install -r requirements.txt
 
 ### What's Supported
 
-**✅ Supported:**
-- React and ReactDOM
-- Modern JavaScript (ES6+)
-- DOM manipulation
-- Event handlers
-- State management (useState, useEffect, etc.)
-- Component lifecycle
-- Basic browser APIs
-- Console logging
-
-**⚠️ Partially Supported:**
-- Fetch API (use IPC to Python instead)
-- LocalStorage (limited)
-- Some newer Web APIs
-
-**❌ Not Supported:**
-- Service Workers
-- WebGL
-- WebAssembly
-- Full Chromium APIs
-- Some HTML5 APIs
+<Tabs items={['Supported', 'Partially Supported', 'Not Supported']}>
+  <Tab value="Supported">
+    - ✅ React and ReactDOM
+    - ✅ Modern JavaScript (ES6+)
+    - ✅ DOM manipulation
+    - ✅ Event handlers
+    - ✅ State management (useState, useEffect, etc.)
+    - ✅ Component lifecycle
+    - ✅ Basic browser APIs
+    - ✅ Console logging
+  </Tab>
+  
+  <Tab value="Partially Supported">
+    - ⚠️ Fetch API (use IPC to Python instead)
+    - ⚠️ LocalStorage (limited)
+    - ⚠️ Some newer Web APIs
+  </Tab>
+  
+  <Tab value="Not Supported">
+    - ❌ Service Workers
+    - ❌ WebGL
+    - ❌ WebAssembly
+    - ❌ Full Chromium APIs
+    - ❌ Some HTML5 APIs
+  </Tab>
+</Tabs>
 
 ## React Integration
 
@@ -158,25 +168,26 @@ console.warn('Warning')            // Shows in terminal
 
 ### Performance Tips
 
-1. **Use IPC for heavy operations**
-   ```jsx
-   // Instead of processing in JavaScript
-   const data = await fetch('/api/data')
-   const processed = expensiveOperation(data)
-   
-   // Do this in Python via IPC
-   const processed = await window.ipcRenderer.invoke('process-data')
-   ```
+**1. Use IPC for heavy operations**
 
-2. **Keep rendering logic in React**
-   - React is optimized for UI updates
-   - Let React handle component rendering
-   - Use Python for backend logic
+```jsx
+// Instead of processing in JavaScript
+const data = await fetch('/api/data')
+const processed = expensiveOperation(data)
 
-3. **Minimize JavaScript complexity**
-   - Complex algorithms → Python
-   - UI logic → React/JavaScript
-   - Data processing → Python
+// Do this in Python via IPC
+const processed = await window.ipcRenderer.invoke('process-data')
+```
+
+**2. Keep rendering logic in React**
+- React is optimized for UI updates
+- Let React handle component rendering
+- Use Python for backend logic
+
+**3. Minimize JavaScript complexity**
+- Complex algorithms → Python
+- UI logic → React/JavaScript
+- Data processing → Python
 
 ## Debugging JavaScript
 
@@ -373,13 +384,15 @@ pip install tkinterweb[full] --force-reinstall
 
 ## Summary
 
-✅ **Positron fully supports JavaScript for React apps** through PythonMonkey
+<Callout type="success">
+**Positron fully supports JavaScript for React apps** through PythonMonkey
 
-✅ **Best practice:** UI in React (JS), logic in Python
+**Best practice:** UI in React (JS), logic in Python
 
-✅ **Installation:** `pip install tkinterweb[full]`
+**Installation:** `pip install tkinterweb[full]`
 
-✅ **Works great for:** Desktop apps with React frontend and Python backend
+**Works great for:** Desktop apps with React frontend and Python backend
+</Callout>
 
 The combination of React's UI capabilities and Python's backend power makes Positron perfect for:
 - Data science dashboards

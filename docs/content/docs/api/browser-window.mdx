@@ -1,0 +1,409 @@
+---
+title: BrowserWindow
+description: Create and manage application windows
+---
+
+# BrowserWindow
+
+Create and control browser windows.
+
+## Import
+
+```python
+from positron import BrowserWindow
+```
+
+## Creating a Window
+
+```python
+win = BrowserWindow({
+    'width': 800,
+    'height': 600,
+    'title': 'My App'
+})
+```
+
+## Constructor Options
+
+```python
+options = {
+    # Window dimensions
+    'width': 800,                # Window width in pixels
+    'height': 600,               # Window height in pixels
+    'min_width': 400,            # Minimum width
+    'min_height': 300,           # Minimum height
+    'max_width': 1920,           # Maximum width
+    'max_height': 1080,          # Maximum height
+    
+    # Window properties
+    'title': 'My App',           # Window title
+    'resizable': True,           # Allow window resizing
+    'center': True,              # Center window on screen
+    'backgroundColor': '#FFFFFF', # Background color
+    
+    # Web preferences
+    'webPreferences': {
+        'contextIsolation': True,     # Isolate context (recommended)
+        'preload': 'path/to/preload.js'  # Preload script
+    }
+}
+
+win = BrowserWindow(options)
+```
+
+## Loading Content
+
+### load_url(url)
+
+Load a remote URL.
+
+```python
+# Load dev server
+win.load_url('http://localhost:5173')
+
+# Load any URL
+win.load_url('https://example.com')
+```
+
+### load_file(path)
+
+Load a local HTML file.
+
+```python
+win.load_file('dist/index.html')
+win.load_file('/absolute/path/to/index.html')
+```
+
+### load_html(html)
+
+Load HTML content directly.
+
+```python
+win.load_html('''
+<html>
+  <head>
+    <title>Hello</title>
+  </head>
+  <body>
+    <h1>Hello World!</h1>
+  </body>
+</html>
+''')
+```
+
+## Window Control
+
+### show()
+
+Show the window.
+
+```python
+win.show()
+```
+
+### hide()
+
+Hide the window.
+
+```python
+win.hide()
+```
+
+### close()
+
+Close the window.
+
+```python
+win.close()
+```
+
+### maximize()
+
+Maximize the window.
+
+```python
+win.maximize()
+```
+
+### minimize()
+
+Minimize the window.
+
+```python
+win.minimize()
+```
+
+### center()
+
+Center the window on screen.
+
+```python
+win.center()
+```
+
+## Window Properties
+
+### set_title(title)
+
+Set the window title.
+
+```python
+win.set_title('My New Title')
+```
+
+### set_size(width, height)
+
+Set the window size.
+
+```python
+win.set_size(1024, 768)
+```
+
+### get_size()
+
+Get the window size.
+
+```python
+width, height = win.get_size()
+print(f"Window size: {width}x{height}")
+```
+
+## Events
+
+### closed
+
+Emitted when the window is closed.
+
+```python
+def on_closed():
+    print("Window closed")
+
+win.on('closed', on_closed)
+```
+
+### ready-to-show
+
+Emitted when the window is ready to be shown.
+
+```python
+def on_ready():
+    win.show()
+
+win.on('ready-to-show', on_ready)
+```
+
+### dom-ready
+
+Emitted when the DOM is ready.
+
+```python
+def on_dom_ready():
+    print("DOM is ready")
+
+win.on('dom-ready', on_dom_ready)
+```
+
+## Complete Examples
+
+### Basic Window
+
+```python
+from positron import App, BrowserWindow
+
+app = App()
+
+def create_window():
+    win = BrowserWindow({
+        'width': 800,
+        'height': 600,
+        'title': 'Hello Positron'
+    })
+    
+    win.load_html('<h1>Hello World!</h1>')
+
+app.when_ready(create_window)
+app.run()
+```
+
+### Development Window with Vite
+
+```python
+from positron import App, BrowserWindow
+from positron.renderer import DevServer
+from pathlib import Path
+
+app = App()
+
+def create_window():
+    win = BrowserWindow({
+        'width': 1000,
+        'height': 700,
+        'title': 'My App',
+        'center': True
+    })
+    
+    # Start dev server
+    dev_server = DevServer(
+        cwd=str(Path(__file__).parent),
+        command='npm run dev',
+        port=5173
+    )
+    dev_server.start()
+    
+    # Load from dev server
+    win.load_url(dev_server.get_url())
+    
+    # Show when ready
+    win.on('ready-to-show', lambda: win.show())
+
+app.when_ready(create_window)
+app.run()
+```
+
+### Multiple Windows
+
+```python
+from positron import App, BrowserWindow
+
+app = App()
+
+def create_windows():
+    # Main window
+    main_win = BrowserWindow({
+        'width': 1000,
+        'height': 700,
+        'title': 'Main Window'
+    })
+    main_win.load_file('main.html')
+    
+    # Secondary window
+    secondary_win = BrowserWindow({
+        'width': 400,
+        'height': 300,
+        'title': 'Settings'
+    })
+    secondary_win.load_file('settings.html')
+
+app.when_ready(create_windows)
+app.run()
+```
+
+### Window with Custom Styling
+
+```python
+win = BrowserWindow({
+    'width': 1200,
+    'height': 800,
+    'title': 'Beautiful App',
+    'resizable': True,
+    'center': True,
+    'backgroundColor': '#1e1e1e',
+    'min_width': 800,
+    'min_height': 600,
+    'max_width': 1920,
+    'max_height': 1080
+})
+```
+
+## Best Practices
+
+### Use ready-to-show event
+
+```python
+# ✅ Good - prevents flash of unstyled content
+win = BrowserWindow({'width': 800, 'height': 600})
+win.on('ready-to-show', lambda: win.show())
+win.load_url('http://localhost:5173')
+
+# ❌ Bad - window shows before content loads
+win = BrowserWindow({'width': 800, 'height': 600})
+win.load_url('http://localhost:5173')
+win.show()
+```
+
+### Handle window close events
+
+```python
+# ✅ Good
+def on_closed():
+    print("Window closed, cleanup...")
+    # Perform cleanup
+
+win.on('closed', on_closed)
+```
+
+### Set reasonable size constraints
+
+```python
+# ✅ Good - prevents window from being too small
+win = BrowserWindow({
+    'width': 1000,
+    'height': 700,
+    'min_width': 800,   # Prevent too small
+    'min_height': 600,
+    'resizable': True
+})
+```
+
+### Center important windows
+
+```python
+# ✅ Good for main windows
+main_win = BrowserWindow({
+    'width': 1000,
+    'height': 700,
+    'center': True  # Center on screen
+})
+```
+
+## Common Patterns
+
+### Splash Screen
+
+```python
+def create_window():
+    # Show splash screen
+    splash = BrowserWindow({
+        'width': 400,
+        'height': 300,
+        'center': True,
+        'resizable': False
+    })
+    splash.load_file('splash.html')
+    
+    # After 2 seconds, show main window
+    def show_main():
+        splash.close()
+        main = BrowserWindow({'width': 1000, 'height': 700})
+        main.load_url('http://localhost:5173')
+    
+    # Use timer or when main content ready
+    import threading
+    threading.Timer(2.0, show_main).start()
+```
+
+### Modal Dialog Pattern
+
+```python
+def show_dialog(parent_window):
+    dialog = BrowserWindow({
+        'width': 400,
+        'height': 300,
+        'title': 'Settings',
+        'center': True,
+        'resizable': False
+    })
+    dialog.load_file('dialog.html')
+    
+    def on_close():
+        # Focus back to parent
+        parent_window.show()
+    
+    dialog.on('closed', on_close)
+```
+
+## See Also
+
+- [App](/docs/api/app) - Application lifecycle
+- [IPC](/docs/api/ipc) - Communicate with window content
+- [DevServer](/docs/api/dev-server) - Development server integration

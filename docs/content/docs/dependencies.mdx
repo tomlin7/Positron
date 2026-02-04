@@ -1,4 +1,9 @@
-# Positron Dependencies
+---
+title: Dependencies
+description: Detailed information about Positron dependencies
+---
+
+# Dependencies
 
 ## Python Dependencies
 
@@ -69,16 +74,24 @@ npm install vite @vitejs/plugin-react
 **Tkinter**
 - Usually included with Python
 - On some Linux systems, install separately:
-  ```bash
-  # Ubuntu/Debian
-  sudo apt-get install python3-tk
-  
-  # Fedora
-  sudo dnf install python3-tkinter
-  
-  # Arch Linux
-  sudo pacman -S tk
-  ```
+
+<Tabs items={['Ubuntu/Debian', 'Fedora', 'Arch Linux']}>
+  <Tab value="Ubuntu/Debian">
+    ```bash
+    sudo apt-get install python3-tk
+    ```
+  </Tab>
+  <Tab value="Fedora">
+    ```bash
+    sudo dnf install python3-tkinter
+    ```
+  </Tab>
+  <Tab value="Arch Linux">
+    ```bash
+    sudo pacman -S tk
+    ```
+  </Tab>
+</Tabs>
 
 ## Installation Methods
 
@@ -121,7 +134,9 @@ positron-framework
     └── requests (HTTP support)
 ```
 
-**Note:** The `[full]` installation is required because React apps need JavaScript support via PythonMonkey.
+<Callout type="info">
+The `[full]` installation is required because React apps need JavaScript support via PythonMonkey.
+</Callout>
 
 ## About the TkinterWeb Folder
 
@@ -133,8 +148,6 @@ The `TkinterWeb/` folder in this repository is **for reference only**.
   - Development reference
   - Offline code browsing
 - You can safely delete it without affecting Positron
-
-See [TkinterWeb/REFERENCE_ONLY.md](TkinterWeb/REFERENCE_ONLY.md) for details.
 
 ## Verifying Installation
 

@@ -1,0 +1,222 @@
+---
+title: App
+description: Application lifecycle management API
+---
+
+# App
+
+The `App` class manages the application lifecycle in Positron.
+
+## Import
+
+```python
+from positron import App
+```
+
+## Creating an App Instance
+
+```python
+app = App()
+```
+
+<Callout type="info">
+`App` is a singleton - only one instance can exist per application.
+</Callout>
+
+## Lifecycle Events
+
+### ready
+
+Emitted when Positron has finished initializing.
+
+```python
+def on_ready():
+    print("App is ready!")
+
+app.on('ready', on_ready)
+```
+
+### window-all-closed
+
+Emitted when all windows have been closed.
+
+```python
+def on_all_closed():
+    app.quit()
+
+app.on('window-all-closed', on_all_closed)
+```
+
+### before-quit
+
+Emitted before the application starts closing windows.
+
+```python
+def on_before_quit():
+    print("App is about to quit")
+
+app.on('before-quit', on_before_quit)
+```
+
+### quit
+
+Emitted when the application is quitting.
+
+```python
+def on_quit():
+    print("App is quitting")
+
+app.on('quit', on_quit)
+```
+
+## Methods
+
+### app.run()
+
+Starts the application's main event loop.
+
+```python
+app.run()
+```
+
+<Callout type="warn">
+This method blocks until the application quits. Place it at the end of your main script.
+</Callout>
+
+### app.quit()
+
+Quits the application.
+
+```python
+app.quit()
+```
+
+This method:
+1. Emits `before-quit` event
+2. Closes all windows
+3. Emits `quit` event
+4. Exits the main loop
+
+### app.when_ready(callback)
+
+Convenience method to run a callback when the app is ready.
+
+```python
+def create_window():
+    win = BrowserWindow({'width': 800, 'height': 600})
+    win.load_url('http://localhost:5173')
+
+app.when_ready(create_window)
+```
+
+Equivalent to:
+```python
+app.on('ready', create_window)
+```
+
+### app.on(event, callback)
+
+Register an event listener.
+
+**Parameters:**
+- `event` (str): Event name
+- `callback` (callable): Function to call when event fires
+
+```python
+app.on('ready', lambda: print("Ready!"))
+```
+
+## Properties
+
+### app.windows
+
+List of all `BrowserWindow` instances.
+
+```python
+print(f"Open windows: {len(app.windows)}")
+```
+
+## Complete Example
+
+```python
+from positron import App, BrowserWindow
+from positron.ipc import ipc_main
+
+app = App()
+
+@ipc_main.handle('get-app-info')
+def get_app_info(event):
+    return {
+        'window_count': len(app.windows),
+        'version': '1.0.0'
+    }
+
+def create_window():
+    win = BrowserWindow({
+        'width': 1000,
+        'height': 700,
+        'title': 'My Positron App'
+    })
+    win.load_url('http://localhost:5173')
+
+def on_window_all_closed():
+    print("All windows closed, quitting...")
+    app.quit()
+
+def on_before_quit():
+    print("Cleaning up before quit...")
+    # Perform cleanup here
+
+app.on('window-all-closed', on_window_all_closed)
+app.on('before-quit', on_before_quit)
+
+app.when_ready(create_window)
+app.run()
+```
+
+## Best Practices
+
+### Use when_ready for initialization
+
+```python
+# ✅ Good
+app.when_ready(create_window)
+app.run()
+
+# ❌ Bad - window created before app is ready
+create_window()
+app.run()
+```
+
+### Handle window-all-closed
+
+```python
+# ✅ Good - app quits when all windows closed
+app.on('window-all-closed', lambda: app.quit())
+
+# ❌ Bad - app keeps running with no windows
+# (not handling the event)
+```
+
+### Use before-quit for cleanup
+
+```python
+# ✅ Good
+def cleanup():
+    # Save state
+    # Close database connections
+    # Stop background tasks
+    pass
+
+app.on('before-quit', cleanup)
+```
+
+## Platform Differences
+
+Positron behaves the same across all platforms. Unlike Electron, there's no special macOS behavior where apps stay running after all windows close.
+
+## See Also
+
+- [BrowserWindow](/docs/api/browser-window) - Create and manage windows
+- [IPC](/docs/api/ipc) - Inter-process communication
+- [Architecture](/docs/architecture) - Understanding the app structure
