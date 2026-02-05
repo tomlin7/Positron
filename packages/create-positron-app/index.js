@@ -103,12 +103,14 @@ async function main() {
                     await fs.writeJson(pkgJsonPath, pkg, { spaces: 2 });
                 }
 
-                spinner.succeed(chalk.white('Template copied successfully.'));
+                spinner.succeed(chalk.white('Project created successfully.'));
 
                 console.log('\n');
                 console.log(chalk.gray('  01. ') + chalk.white('cd ') + chalk.white(targetDir));
                 console.log(chalk.gray('  02. ') + chalk.white('npm install'));
                 console.log(chalk.gray('  03. ') + chalk.white('npm run dev'));
+                console.log('\n');
+                console.log(chalk.gray('  Happy coding!'));
                 console.log('\n');
 
             } catch (err) {
