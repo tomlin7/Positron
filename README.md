@@ -87,5 +87,4 @@ python main.py
 
 ---
 
-© 2024 POSITRON CORE v1.0.0-ALPHA
-
+© 2026 POSITRON CORE v0.1.0-ALPHA
