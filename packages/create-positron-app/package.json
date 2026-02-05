@@ -1,6 +1,6 @@
 {
   "name": "create-positron-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create Positron-powered desktop apps with one command",
   "main": "index.js",
   "bin": {
