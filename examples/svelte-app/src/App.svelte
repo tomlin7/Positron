@@ -4,14 +4,24 @@
 
   let count = 0
   let message = ''
+  let isPositron = false
 
   onMount(() => {
-    if ((window as any).positron) {
-      ;(window as any).ipcRenderer.on('message-from-main', (event: any, msg: string) => {
-        message = msg
-      })
-      ;(window as any).ipcRenderer.send('renderer-ready', 'Hello from Svelte!')
+    // Check for positron object with retry mechanism
+    const checkPositron = () => {
+      if ((window as any).positron) {
+        isPositron = true
+        ;(window as any).ipcRenderer.on('message-from-main', (event: any, msg: string) => {
+          message = msg
+        })
+        ;(window as any).ipcRenderer.send('renderer-ready', 'Hello from Svelte!')
+      } else {
+        // Retry after a short delay to ensure script injection
+        setTimeout(checkPositron, 100)
+      }
     }
+
+    checkPositron()
   })
 
   function handleClick() {
@@ -55,7 +65,7 @@
     {/if}
 
     <div class="status">
-      {(window as any).positron ? 'Running in Positron' : 'Browser mode'}
+      {isPositron ? 'Running in Positron' : 'Browser mode'}
     </div>
   </div>
 </div>
@@ -69,9 +79,11 @@
 
   .app {
     min-height: 100vh;
+    width: 100%;
     background: #0a0a0a;
     color: #e0e0e0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -79,8 +91,8 @@
 
   .container {
     text-align: center;
-    max-width: 500px;
-    padding: 2rem;
+    width: 100%;
+    padding: 4rem 2rem;
   }
 
   h1 {
