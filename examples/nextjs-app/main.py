@@ -1,9 +1,28 @@
 from pathlib import Path
 
 from positron import App, BrowserWindow
+from positron.ipc import ipc_main
 from positron.renderer.dev_server import DevServer
 
 app = App()
+
+
+# IPC Handlers
+@ipc_main.on("renderer-ready")
+def handle_renderer_ready(event, message):
+    print(f"Renderer ready: {message}")
+
+
+@ipc_main.on("button-clicked")
+def handle_button_click(event, count):
+    print(f"Button clicked {count} times!")
+    event.sender.send("message-from-main", f"Python received click count: {count}")
+
+
+@ipc_main.handle("get-data")
+def handle_get_data(event, message):
+    print(f"Received from Next.js: {message}")
+    return f"Python says hello to Next.js! You sent: {message}"
 
 
 def create_window():

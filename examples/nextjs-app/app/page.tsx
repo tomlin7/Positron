@@ -62,7 +62,9 @@ export default function Home() {
         {message && <div className="message">{message}</div>}
 
         <div className="status">
-          {(window as any).positron ? "Running in Positron" : "Browser mode"}
+          {typeof window !== "undefined" && (window as any).positron
+            ? "Running in Positron"
+            : "Browser mode"}
         </div>
       </div>
     </div>
