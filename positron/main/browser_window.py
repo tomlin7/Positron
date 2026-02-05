@@ -1,32 +1,29 @@
 """
-BrowserWindow class for Positron
-Similar to Electron's BrowserWindow - creates and manages application windows
+BrowserWindow class for Positron using pywebview
+Provides actual React/modern web app support via WebView2/WebKit
 """
 
-import os
 import sys
-import tkinter as tk
+import threading
 from pathlib import Path
-from tkinter import ttk
 from typing import Any, Callable, Dict, Optional
 
-# Import TkinterWeb
-try:
-    from tkinterweb import HtmlFrame
-except ImportError:
-    raise ImportError(
-        "TkinterWeb is required. Please install it with: pip install tkinterweb[recommended]"
-    )
+import webview
 
-from ..ipc.renderer import ipc_renderer
+# Import from package instead of specific files to allow flexibility
+from ..ipc import ipc_main, ipc_renderer
 from .app import app
 
 
 class BrowserWindow:
     """
-    Create and control browser windows.
-    Each window contains a TkinterWeb HtmlFrame for rendering HTML/CSS/React apps.
+    Create and control browser windows using pywebview.
+    Each window contains a real web browser engine (WebView2 on Windows).
     """
+
+    # Track all windows
+    _windows = []
+    _webview_started = False
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
         """
@@ -38,88 +35,70 @@ class BrowserWindow:
                 - height (int): Window height in pixels (default: 600)
                 - title (str): Window title (default: "Positron")
                 - resizable (bool): Whether window is resizable (default: True)
-                - frame (bool): Whether to show window frame (default: True)
-                - show (bool): Whether to show window on creation (default: True)
-                - center (bool): Whether to center window on screen (default: True)
+                - frameless (bool): Frameless window (default: False)
+                - fullscreen (bool): Start in fullscreen (default: False)
                 - min_width (int): Minimum window width
                 - min_height (int): Minimum window height
-                - max_width (int): Maximum window width
-                - max_height (int): Maximum window height
                 - backgroundColor (str): Background color (default: "#FFFFFF")
-                - webPreferences (dict): Web preferences
-                    - nodeIntegration (bool): Enable Node.js integration (not applicable)
-                    - contextIsolation (bool): Enable context isolation (default: True)
-                    - preload (str): Path to preload script
+                - show (bool): Show window immediately (default: True)
+                - center (bool): Center window on screen (default: True)
+                - webPreferences (dict): Web preferences (for compatibility)
         """
         options = options or {}
 
-        # Create Tk window
-        self.window = tk.Toplevel(app.root) if app.root else tk.Tk()
-        if not app.root:
-            app.root = self.window
-
         # Window properties
         self._is_closed = False
-        self._ready_callbacks = []
         self._closed_callbacks = []
         self._dom_ready_callbacks = []
+        self._url = None
+        self._html_content = None
 
-        # Configure window
+        # Extract options
         width = options.get("width", 800)
         height = options.get("height", 600)
         title = options.get("title", "Positron")
         resizable = options.get("resizable", True)
-        show = options.get("show", True)
-        center = options.get("center", True)
-        bg_color = options.get("backgroundColor", "#FFFFFF")
+        frameless = options.get("frameless", False)
+        fullscreen = options.get("fullscreen", False)
+        min_size = (options.get("min_width", 200), options.get("min_height", 100))
+        background_color = options.get("backgroundColor", "#FFFFFF")
+        hidden = not options.get("show", True)
 
-        self.window.title(title)
-        self.window.geometry(f"{width}x{height}")
-        self.window.resizable(resizable, resizable)
+        # We need to create the window first to get a reference, then set up API
+        # Create a placeholder - we'll set up IPC after window creation
+        self.window = None
 
-        # Set minimum/maximum sizes
-        if "min_width" in options or "min_height" in options:
-            min_w = options.get("min_width", 0)
-            min_h = options.get("min_height", 0)
-            self.window.minsize(min_w, min_h)
-
-        if "max_width" in options or "max_height" in options:
-            max_w = options.get("max_width", 0)
-            max_h = options.get("max_height", 0)
-            if max_w > 0 or max_h > 0:
-                self.window.maxsize(max_w, max_h)
-
-        # Center window
-        if center:
-            self.center()
-
-        # Web preferences
-        web_prefs = options.get("webPreferences", {})
-        preload_script = web_prefs.get("preload", None)
-
-        # Create HtmlFrame for rendering content
-        self.web_contents = HtmlFrame(
-            self.window,
-            messages_enabled=True,
-            horizontal_scrollbar="auto",
-            vertical_scrollbar="auto",
+        # Create a temporary window to get reference
+        temp_window = webview.create_window(
+            title=title,
+            url="about:blank",  # Start with blank page
+            width=width,
+            height=height,
+            resizable=resizable,
+            fullscreen=fullscreen,
+            min_size=min_size,
+            background_color=background_color,
+            frameless=frameless,
+            hidden=hidden,
         )
-        self.web_contents.pack(fill="both", expand=True)
-        self.window.configure(bg=bg_color)
 
-        # Bind events
-        self.web_contents.bind("<<DOMContentLoaded>>", self._on_dom_ready)
-        self.window.protocol("WM_DELETE_WINDOW", self.close)
+        # Now get the API with the window reference and expose it
+        self.window = temp_window
+        js_api = ipc_main.get_js_api(self.window)
 
-        # Store preload script path
-        self._preload_script = preload_script
+        # Expose the API methods individually
+        for method_name in ["ipc_send", "ipc_invoke"]:
+            if hasattr(js_api, method_name):
+                self.window.expose(getattr(js_api, method_name))
 
-        # Register window with app
+        # Set up event handlers
+        self.window.events.closed += self._on_closed
+
+        # Register window
+        BrowserWindow._windows.append(self)
         app.register_window(self)
 
-        # Show/hide window
-        if not show:
-            self.hide()
+        print(f"Created BrowserWindow: {title} ({width}x{height})")
 
     def load_url(self, url: str):
         """
@@ -128,19 +107,34 @@ class BrowserWindow:
         Args:
             url: URL to load (http://, https://, or file://)
         """
-        if url.startswith("file://"):
-            # Handle file:// URLs
-            file_path = url[7:]  # Remove 'file://'
-            self.load_file(file_path)
-        else:
-            # For http/https URLs, load directly with TkinterWeb
-            # TkinterWeb will handle the content rendering
-            print(f"Loading URL: {url}")
-            try:
-                self.web_contents.load_url(url)
-                print("URL loaded successfully")
-            except Exception as e:
-                print(f"Error loading URL {url}: {e}", file=sys.stderr)
+        print(f"Loading URL: {url}")
+        self._url = url
+
+        if self.window:
+            # Inject IPC script after page loads
+            def inject_ipc():
+                try:
+                    ipc_script = ipc_renderer.get_preload_script()
+                    # Inject the IPC script
+                    self.window.evaluate_js(ipc_script)
+                    print("IPC script injected")
+
+                    # Force initialization attempt
+                    self.window.evaluate_js(
+                        "if (typeof initPositronIPC === 'function') initPositronIPC();"
+                    )
+                except Exception as e:
+                    print(f"Warning: Failed to inject IPC script: {e}")
+
+            # Use loaded event to inject script
+            self.window.events.loaded += inject_ipc
+
+            # Load URL when window is shown (after webview.start())
+            def load_when_shown():
+                print(f"Window shown, now loading: {url}")
+                self.window.load_url(url)
+
+            self.window.events.shown += load_when_shown
 
     def load_file(self, file_path: str):
         """
@@ -153,16 +147,12 @@ class BrowserWindow:
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        with open(file_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
+        print(f"Loading file: {file_path}")
 
-        # Execute preload script if specified
-        if self._preload_script:
-            html_content = self._inject_preload_script(html_content)
-
-        self.web_contents.load_html(
-            html_content, base_url=file_path.parent.as_uri() + "/"
-        )
+        # Convert to file:// URL and use load_url instead
+        # This preserves relative paths and allows proper loading
+        file_url = file_path.as_uri()
+        self.load_url(file_url)
 
     def load_html(self, html: str, base_url: str = ""):
         """
@@ -170,15 +160,15 @@ class BrowserWindow:
 
         Args:
             html: HTML content to load
-            base_url: Base URL for resolving relative paths
+            base_url: Base URL for resolving relative paths (optional)
         """
+        print(f"Loading HTML content (base_url: {base_url})")
+
         # Inject IPC renderer script
         html = self._inject_ipc_script(html)
 
-        if self._preload_script:
-            html = self._inject_preload_script(html)
-
-        self.web_contents.load_html(html, base_url=base_url)
+        self._html_content = html
+        self.window.load_html(html)
 
     def _inject_ipc_script(self, html: str) -> str:
         """Internal: Inject IPC renderer script into HTML"""
@@ -203,67 +193,13 @@ class BrowserWindow:
 
         return html
 
-    def _inject_preload_script(self, html: str) -> str:
-        """Internal: Inject preload script into HTML"""
-        preload_path = Path(self._preload_script).resolve()
-        if not preload_path.exists():
-            print(f"Warning: Preload script not found: {preload_path}", file=sys.stderr)
-            return html
-
-        with open(preload_path, "r", encoding="utf-8") as f:
-            preload_code = f.read()
-
-        # Inject script before </head> or at the beginning
-        if "<head>" in html:
-            script_tag = f"<script>{preload_code}</script>"
-            html = html.replace("<head>", f"<head>{script_tag}", 1)
-        else:
-            script_tag = f"<html><head><script>{preload_code}</script></head><body>"
-            if "<html>" not in html:
-                html = script_tag + html + "</body></html>"
-
-        return html
-
-    def _on_dom_ready(self, event):
-        """Internal: Handle DOM ready event"""
-        for callback in self._dom_ready_callbacks:
-            try:
-                callback(event)
-            except Exception as e:
-                print(f"Error in dom-ready callback: {e}", file=sys.stderr)
-
-    def on(self, event: str, callback: Callable):
-        """
-        Register event listener.
-
-        Events:
-            - 'ready-to-show': Window is ready to be shown
-            - 'closed': Window has been closed
-            - 'dom-ready': DOM is loaded and ready
-        """
-        if event == "ready-to-show":
-            self._ready_callbacks.append(callback)
-        elif event == "closed":
-            self._closed_callbacks.append(callback)
-        elif event == "dom-ready":
-            self._dom_ready_callbacks.append(callback)
-        else:
-            raise ValueError(f"Unknown event: {event}")
-
-    def show(self):
-        """Show the window"""
-        self.window.deiconify()
-
-    def hide(self):
-        """Hide the window"""
-        self.window.withdraw()
-
-    def close(self):
-        """Close the window"""
+    def _on_closed(self):
+        """Internal: Handle window close event"""
         if self._is_closed:
             return
 
         self._is_closed = True
+        print(f"Window closed: {self.window.title}")
 
         # Emit closed event
         for callback in self._closed_callbacks:
@@ -273,42 +209,86 @@ class BrowserWindow:
                 print(f"Error in closed callback: {e}", file=sys.stderr)
 
         # Unregister from app
+        if self in BrowserWindow._windows:
+            BrowserWindow._windows.remove(self)
         app.unregister_window(self)
 
-        # Destroy window
-        self.window.destroy()
+    def on(self, event: str, callback: Callable):
+        """
+        Register event listener.
 
-    def center(self):
-        """Center the window on screen"""
-        self.window.update_idletasks()
-        width = self.window.winfo_width()
-        height = self.window.winfo_height()
-        screen_width = self.window.winfo_screenwidth()
-        screen_height = self.window.winfo_screenheight()
-        x = (screen_width - width) // 2
-        y = (screen_height - height) // 2
-        self.window.geometry(f"{width}x{height}+{x}+{y}")
+        Events:
+            - 'closed': Window has been closed
+            - 'dom-ready': DOM is loaded and ready (placeholder for compatibility)
+        """
+        if event == "closed":
+            self._closed_callbacks.append(callback)
+        elif event == "dom-ready":
+            self._dom_ready_callbacks.append(callback)
+        else:
+            print(f"Warning: Unknown event '{event}' (ignored)", file=sys.stderr)
+
+    def show(self):
+        """Show the window"""
+        if self.window:
+            self.window.show()
+
+    def hide(self):
+        """Hide the window"""
+        if self.window:
+            self.window.hide()
+
+    def close(self):
+        """Close the window"""
+        if not self._is_closed and self.window:
+            self.window.destroy()
 
     def set_title(self, title: str):
         """Set window title"""
-        self.window.title(title)
+        if self.window:
+            self.window.title = title
 
     def get_title(self) -> str:
         """Get window title"""
-        return self.window.title()
+        return self.window.title if self.window else ""
 
     def maximize(self):
         """Maximize the window"""
-        self.window.state("zoomed")
+        if self.window:
+            self.window.maximize()
 
     def minimize(self):
         """Minimize the window"""
-        self.window.iconify()
+        if self.window:
+            self.window.minimize()
 
     def set_size(self, width: int, height: int):
         """Set window size"""
-        self.window.geometry(f"{width}x{height}")
+        if self.window:
+            self.window.resize(width, height)
 
     def get_size(self) -> tuple:
         """Get window size as (width, height)"""
-        return (self.window.winfo_width(), self.window.winfo_height())
+        if self.window:
+            return (self.window.width, self.window.height)
+        return (0, 0)
+
+    def center(self):
+        """Center the window on screen"""
+        # pywebview doesn't have a built-in center method
+        # This is handled by the 'center' option in constructor
+        pass
+
+    def evaluate_js(self, script: str):
+        """
+        Evaluate JavaScript in the window.
+
+        Args:
+            script: JavaScript code to execute
+
+        Returns:
+            Result of the JavaScript execution
+        """
+        if self.window:
+            return self.window.evaluate_js(script)
+        return None

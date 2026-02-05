@@ -1,33 +1,99 @@
 """
-IPC Main Process Module
+IPC Main Process Module for pywebview
 Handles communication from renderer (JavaScript) to main (Python)
+Uses pywebview's JS API to expose Python functions
 """
 
-import json
 import sys
 from typing import Any, Callable, Dict, Optional
 
 
+class IPCEvent:
+    """
+    IPC Event object passed to handlers.
+    Allows sending replies back to the renderer.
+    """
+
+    def __init__(self, window=None):
+        self.window = window
+        # Create a sender object with send method
+        self.sender = type(
+            "Sender",
+            (),
+            {"send": lambda channel, *args: self._send_to_renderer(channel, *args)},
+        )()
+
+    def _send_to_renderer(self, channel: str, *args):
+        """
+        Internal method to send messages to renderer.
+
+        Args:
+            channel: Channel name
+            *args: Arguments to send
+        """
+        if self.window:
+            # Call JavaScript function to trigger callbacks
+            import json
+
+            js_args = json.dumps(args[0] if len(args) == 1 else args)
+            js_code = f"window.positron.ipcRenderer._receive('{channel}', {js_args})"
+            try:
+                self.window.evaluate_js(js_code)
+            except Exception as e:
+                print(f"Error sending to channel '{channel}': {e}", file=sys.stderr)
+
+    def reply(self, channel: str, *args):
+        """
+        Send a reply to the renderer process.
+
+        Args:
+            channel: Reply channel name
+            *args: Arguments to send
+        """
+        self._send_to_renderer(channel, *args)
+
+
 class IPCMain:
     """
-    Main process IPC handler.
-    Listens for messages from renderer processes and can send replies.
+    Main process IPC handler for pywebview.
+    Exposes Python functions to JavaScript via pywebview's API.
     """
 
     def __init__(self):
         self._handlers: Dict[str, Callable] = {}
         self._once_handlers: Dict[str, Callable] = {}
+        self._current_window = None  # Set by BrowserWindow when exposing API
 
-    def on(self, channel: str, handler: Callable):
+    def set_current_window(self, window):
+        """Set the current window for API exposure"""
+        self._current_window = window
+
+    def on(self, channel: str, handler: Optional[Callable] = None):
         """
         Register a handler for a channel.
         Handler receives (event, *args) where event contains sender information.
 
+        Can be used as a decorator:
+            @ipc_main.on('channel')
+            def handler(event, *args):
+                # Handle message
+
+        Or called directly:
+            ipc_main.on('channel', handler_function)
+
         Args:
             channel: Channel name to listen on
-            handler: Callback function(event, *args)
+            handler: Callback function(event, *args) (optional if used as decorator)
         """
-        self._handlers[channel] = handler
+
+        def decorator(func):
+            self._handlers[channel] = func
+            return func
+
+        if handler is None:
+            return decorator
+        else:
+            self._handlers[channel] = handler
 
     def once(self, channel: str, handler: Callable):
         """
@@ -66,16 +132,16 @@ class IPCMain:
 
     def handle(self, channel: str, handler: Optional[Callable] = None):
         """
-        Register a handler that can send a reply using event.reply()
+        Register a handler that returns a value (for invoke/handle pattern).
         Similar to Electron's ipcMain.handle()
 
         Can be used as a decorator:
-            @ipc_main.handle('channel')
+            @ipc_main.handle('get-data')
             def handler(event, *args):
-                return result
+                return {"data": "value"}
 
         Or called directly:
-            ipc_main.handle('channel', handler_function)
+            ipc_main.handle('get-data', handler_function)
 
         Args:
             channel: Channel name to handle
@@ -83,36 +149,27 @@ class IPCMain:
         """
 
         def decorator(func):
-            def wrapper(event, *args):
-                try:
-                    result = func(event, *args)
-                    return result
-                except Exception as e:
-                    print(f"Error in IPC handler for '{channel}': {e}", file=sys.stderr)
-                    raise
-
-            self._handlers[channel] = wrapper
+            self._handlers[channel] = func
             return func
 
-        # Support both decorator and direct call
         if handler is None:
-            # Used as decorator: @ipc_main.handle('channel')
             return decorator
         else:
-            # Direct call: ipc_main.handle('channel', handler)
-            decorator(handler)
-            return handler
+            self._handlers[channel] = handler
 
-    def _dispatch(self, channel: str, sender, *args):
+    def _dispatch(self, channel: str, window, *args):
         """
         Internal: Dispatch a message to the appropriate handler.
 
         Args:
             channel: Channel name
-            sender: The BrowserWindow that sent the message
-            *args: Arguments passed from renderer
+            window: The window that sent the message
+            *args: Message arguments
+
+        Returns:
+            Handler result (for invoke pattern)
         """
-        event = IPCMainEvent(sender, channel)
+        event = IPCEvent(window)
 
         # Check once handlers first
         if channel in self._once_handlers:
@@ -120,9 +177,7 @@ class IPCMain:
             try:
                 return handler(event, *args)
             except Exception as e:
-                print(
-                    f"Error in IPC once handler for '{channel}': {e}", file=sys.stderr
-                )
+                print(f"Error in once handler for '{channel}': {e}", file=sys.stderr)
                 raise
 
         # Check regular handlers
@@ -131,44 +186,91 @@ class IPCMain:
             try:
                 return handler(event, *args)
             except Exception as e:
-                print(f"Error in IPC handler for '{channel}': {e}", file=sys.stderr)
+                print(f"Error in handler for '{channel}': {e}", file=sys.stderr)
                 raise
 
         print(
-            f"Warning: No IPC handler registered for channel '{channel}'",
-            file=sys.stderr,
+            f"Warning: No handler registered for channel '{channel}'", file=sys.stderr
         )
         return None
 
-
-class IPCMainEvent:
-    """
-    Event object passed to IPC handlers.
-    Contains information about the sender and provides reply mechanism.
-    """
-
-    def __init__(self, sender, channel: str):
+    def get_js_api(self, window):
         """
-        Args:
-            sender: The BrowserWindow that sent the message
-            channel: The channel name
-        """
-        self.sender = sender
-        self.channel = channel
-        self._reply_channel = f"{channel}-reply"
-
-    def reply(self, channel: str, *args):
-        """
-        Send a reply back to the renderer process.
+        Get the JavaScript API object to expose via pywebview.
 
         Args:
-            channel: Channel to send reply on
+            window: The BrowserWindow instance
+
+        Returns:
+            API class with methods for JavaScript
+        """
+
+        # Create API object with methods
+        # Note: We use a simple object, not a class, for pywebview compatibility
+        api = type("JSApi", (), {})()
+
+        def ipc_send(channel, args):
+            """
+            Handle send() calls from JavaScript.
+
+            Args:
+                channel: Channel name
+                args: List of arguments
+            """
+            try:
+                # Unpack args list
+                unpacked_args = args if isinstance(args, (list, tuple)) else [args]
+                ipc_main._dispatch(channel, window, *unpacked_args)
+                return {"success": True}
+            except Exception as e:
+                print(f"IPC send error: {e}", file=sys.stderr)
+                return {"success": False, "error": str(e)}
+
+        def ipc_invoke(channel, args):
+            """
+            Handle invoke() calls from JavaScript.
+
+            Args:
+                channel: Channel name
+                args: List of arguments
+
+            Returns:
+                Result from handler
+            """
+            try:
+                # Unpack args list
+                unpacked_args = args if isinstance(args, (list, tuple)) else [args]
+                result = ipc_main._dispatch(channel, window, *unpacked_args)
+                return result
+            except Exception as e:
+                print(f"IPC invoke error: {e}", file=sys.stderr)
+                raise
+
+        # Attach methods to the API object
+        api.ipc_send = ipc_send
+        api.ipc_invoke = ipc_invoke
+
+        return api
+
+    def send_to_window(self, window, channel: str, *args):
+        """
+        Send a message to a renderer window.
+
+        Args:
+            window: The BrowserWindow to send to
+            channel: Channel name
             *args: Arguments to send
         """
-        # This will be implemented when we add JavaScript bridge
-        # For now, we'll store it for the renderer to retrieve
-        if hasattr(self.sender, "_ipc_send_to_renderer"):
-            self.sender._ipc_send_to_renderer(channel, *args)
+        if window and hasattr(window, "evaluate_js"):
+            js_args = ", ".join([repr(arg) for arg in args])
+            js_code = f"window.positron.ipcRenderer._receive('{channel}', {js_args})"
+            try:
+                window.evaluate_js(js_code)
+            except Exception as e:
+                print(
+                    f"Error sending to window on channel '{channel}': {e}",
+                    file=sys.stderr,
+                )
 
 
 # Singleton instance

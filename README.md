@@ -101,4 +101,6 @@ All examples feature the same dark minimalist UI and full IPC support.
 
 ---
 
-© 2026 POSITRON CORE v0.1.0-ALPHA
+POSITRON CORE v0.1.0-ALPHA
+
+© 2026 POSITRON DEVELOPERS

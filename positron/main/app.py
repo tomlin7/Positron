@@ -1,11 +1,12 @@
 """
-Main application class for Positron
+Main application class for Positron using pywebview
 Similar to Electron's app module - manages application lifecycle
 """
 
 import sys
-import tkinter as tk
-from typing import Callable, Optional
+from typing import Callable
+
+import webview
 
 
 class App:
@@ -27,7 +28,6 @@ class App:
             return
 
         self._initialized = True
-        self.root = None
         self.windows = []
         self._ready_callbacks = []
         self._window_all_closed_callbacks = []
@@ -35,6 +35,7 @@ class App:
         self._quit_callbacks = []
         self._is_ready = False
         self._is_quitting = False
+        self._webview_started = False
 
     def on(self, event: str, callback: Callable):
         """
@@ -85,7 +86,7 @@ class App:
             except Exception as e:
                 print(f"Error in window-all-closed callback: {e}", file=sys.stderr)
 
-        # Default behavior: quit on all windows closed (similar to Electron on Windows/Linux)
+        # Default behavior: quit on all windows closed
         if not self._window_all_closed_callbacks:
             self.quit()
 
@@ -109,13 +110,16 @@ class App:
         """Internal: Register a window with the app"""
         if window not in self.windows:
             self.windows.append(window)
+            print(f"Registered window. Total windows: {len(self.windows)}")
 
     def unregister_window(self, window):
         """Internal: Unregister a window from the app"""
         if window in self.windows:
             self.windows.remove(window)
+            print(f"Unregistered window. Remaining windows: {len(self.windows)}")
 
         if len(self.windows) == 0:
+            print("All windows closed")
             self._emit_window_all_closed()
 
     def quit(self):
@@ -123,6 +127,7 @@ class App:
         if self._is_quitting:
             return
 
+        print("App quitting...")
         self._is_quitting = True
         self._emit_before_quit()
 
@@ -132,27 +137,36 @@ class App:
 
         self._emit_quit()
 
-        # Destroy root window if exists
-        if self.root:
-            self.root.quit()
-            self.root.destroy()
+        # Exit the application
+        try:
+            # pywebview doesn't have a destroy method, just exit
+            sys.exit(0)
+        except Exception as e:
+            print(f"[pywebview] {e}")
 
     def run(self):
         """
         Start the application main loop.
         This should be called after setting up all windows and event handlers.
         """
-        if self.root is None:
-            self.root = tk.Tk()
-            self.root.withdraw()  # Hide the root window
+        print("Starting Positron app with pywebview...")
 
         # Emit ready event
         self._emit_ready()
 
-        # Start Tkinter main loop
+        # Start pywebview event loop
+        # pywebview.start() will block until all windows are closed
         try:
-            self.root.mainloop()
+            if len(self.windows) > 0:
+                self._webview_started = True
+                print(f"Starting webview with {len(self.windows)} window(s)")
+                webview.start(debug=True)
+            else:
+                print("Warning: No windows created before app.run()")
         except KeyboardInterrupt:
+            self.quit()
+        except Exception as e:
+            print(f"Error in webview loop: {e}", file=sys.stderr)
             self.quit()
 
     def get_name(self) -> str:
