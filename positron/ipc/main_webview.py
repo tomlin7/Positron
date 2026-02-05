@@ -16,7 +16,31 @@ class IPCEvent:
 
     def __init__(self, window=None):
         self.window = window
-        self.sender = window
+        # Create a sender object with send method
+        self.sender = type(
+            "Sender",
+            (),
+            {"send": lambda channel, *args: self._send_to_renderer(channel, *args)},
+        )()
+
+    def _send_to_renderer(self, channel: str, *args):
+        """
+        Internal method to send messages to renderer.
+
+        Args:
+            channel: Channel name
+            *args: Arguments to send
+        """
+        if self.window:
+            # Call JavaScript function to trigger callbacks
+            import json
+
+            js_args = json.dumps(args[0] if len(args) == 1 else args)
+            js_code = f"window.positron.ipcRenderer._receive('{channel}', {js_args})"
+            try:
+                self.window.evaluate_js(js_code)
+            except Exception as e:
+                print(f"Error sending to channel '{channel}': {e}", file=sys.stderr)
 
     def reply(self, channel: str, *args):
         """
@@ -26,16 +50,7 @@ class IPCEvent:
             channel: Reply channel name
             *args: Arguments to send
         """
-        if self.window:
-            # Call JavaScript function to trigger callbacks
-            js_args = ", ".join([repr(arg) for arg in args])
-            js_code = f"window.positron.ipcRenderer._receive('{channel}', {js_args})"
-            try:
-                self.window.evaluate_js(js_code)
-            except Exception as e:
-                print(
-                    f"Error sending reply to channel '{channel}': {e}", file=sys.stderr
-                )
+        self._send_to_renderer(channel, *args)
 
 
 class IPCMain:

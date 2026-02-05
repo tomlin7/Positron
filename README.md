@@ -1,7 +1,8 @@
 # POSITRON
 
-**High-performance desktop applications with Python and React.**
-No Node.js. Pure speed.
+**High-performance desktop applications with Python and modern web frameworks.**
+React • Vue • Svelte • Next.js • Vanilla JS
+No Node.js dependency. Pure speed.
 
 ---
 
@@ -37,7 +38,8 @@ app.run()
 
 - **Runtime**: Python 3.9+ / No Node.js dependency
 - **Renderer**: OS Native WebView (WebView2 / WebKit)
-- **UI**: React 18 / Vite 5
+- **UI**: React • Vue • Svelte • Next.js • Vanilla JS
+- **Build Tools**: Vite / Next.js / Webpack
 - **IPC**: Bidirectional bridge (Electron-compatible)
 - **Size**: ~5-10MB (Native system renderer)
 - **Support**: Windows / macOS / Linux
@@ -50,11 +52,12 @@ app.run()
 - Core architecture
 - Window management
 - IPC communication
-- React + Vite integration
+- Multi-framework support (React, Vue, Svelte, Next.js, Vanilla JS)
+- Dev server integration (Vite, Next.js, Webpack)
 
 **02. BUILDING**
-- Documentation (75%)
-- Examples (60%)
+- Documentation (80%)
+- Additional examples
 
 **03. PIPELINE**
 - Menu API
@@ -77,10 +80,24 @@ git clone https://github.com/tomlin7/positron.git
 cd positron
 pip install -r requirements.txt
 
-# Run example
-cd examples/react-app
-npm install
+# Run examples
+cd examples/react-app    # or nextjs-app, vue-app, svelte-app, vanilla-app
+npm install              # or bun install
 python main.py
+```
+
+### FRAMEWORK EXAMPLES
+
+Positron includes complete examples for multiple frameworks:
+
+- **React** - `examples/react-app` - Vite + React 18
+- **Next.js** - `examples/nextjs-app` - Next.js 16 with SSR
+- **Vue** - `examples/vue-app` - Vue 3 + Vite
+- **Svelte** - `examples/svelte-app` - Svelte 5 + Vite
+- **Vanilla** - `examples/vanilla-app` - Pure HTML/CSS/JS
+
+All examples feature the same dark minimalist UI and full IPC support.
+
 ```
 
 ---

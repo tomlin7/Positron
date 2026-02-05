@@ -137,8 +137,12 @@ class App:
 
         self._emit_quit()
 
-        # Destroy all pywebview windows
-        webview.destroy()
+        # Exit the application
+        try:
+            # pywebview doesn't have a destroy method, just exit
+            sys.exit(0)
+        except Exception as e:
+            print(f"[pywebview] {e}")
 
     def run(self):
         """

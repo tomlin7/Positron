@@ -25,6 +25,7 @@ class DevServer:
         port: int = 5173,
         host: str = "localhost",
         wait_timeout: int = 30,
+        auto_port: bool = True,
     ):
         """
         Initialize dev server manager.
@@ -35,13 +36,15 @@ class DevServer:
             port: Port the dev server runs on (default: 5173 for Vite)
             host: Host address (default: localhost)
             wait_timeout: Seconds to wait for server to be ready (default: 30)
+            auto_port: Auto-detect port from output if it changes (default: True)
         """
         self.cwd = Path(cwd).resolve()
         self.command = command
-        self.port = port
+        self.port = self._find_available_port(port) if auto_port else port
         self.original_port = port
         self.host = host
         self.wait_timeout = wait_timeout
+        self.auto_port = auto_port
         self.process: Optional[subprocess.Popen] = None
         self._is_running = False
         self._server_ready = False
@@ -141,6 +144,27 @@ class DevServer:
             time.sleep(0.5)
 
         return False
+
+    def _find_available_port(self, start_port: int) -> int:
+        """Find an available port starting from start_port"""
+        port = start_port
+        while port < start_port + 10:  # Try up to 10 ports
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                # Try to bind to the port - if successful, it's available
+                sock.bind((self.host, port))
+                sock.close()
+                if port != start_port:
+                    print(f"[DevServer] Port {start_port} in use, using port {port}")
+                return port
+            except OSError:
+                # Port is in use, try next one
+                sock.close()
+                port += 1
+            except Exception:
+                sock.close()
+                port += 1
+        return start_port  # Fallback to original port
 
     def _is_port_open(self) -> bool:
         """Check if the dev server port is open"""

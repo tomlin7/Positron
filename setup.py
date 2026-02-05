@@ -16,7 +16,7 @@ setup(
     name="positron-native",
     version="0.1.0",
     author="Positron Contributors",
-    description="Build cross-platform desktop apps with React and Python",
+    description="Build cross-platform desktop apps with Python and modern web frameworks (React, Vue, Svelte, Next.js)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/tomlin7/positron",
