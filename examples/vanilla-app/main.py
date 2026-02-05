@@ -6,9 +6,15 @@ from positron.ipc import ipc_main
 app = App()
 
 
+@ipc_main.on("button-clicked")
+def handle_button_click(event, count):
+    print(f"Button clicked {count} times!")
+
+
 @ipc_main.handle("greet")
 def handle_greet(event, data):
     name = data.get("name", "World")
+    print(f"Received greet request from: {name}")
     return {"message": f"Hello from Python, {name}!"}
 
 
