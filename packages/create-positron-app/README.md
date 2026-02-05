@@ -53,4 +53,4 @@ npm link
 ---
 
 POSITRON CORE v1.0.0-alpha
-2024
+2026

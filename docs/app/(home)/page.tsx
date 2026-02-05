@@ -7,6 +7,7 @@ export default function HomePage() {
     "IPC",
     "Multi-framework support",
     "Dev server integration",
+    "CLI",
   ];
   const active = [
     { name: "Documentation", p: "80%" },
@@ -18,7 +19,6 @@ export default function HomePage() {
     "System tray",
     "Auto-updater",
     "Build tools",
-    "CLI",
   ];
 
   return (
@@ -139,7 +139,7 @@ export default function HomePage() {
 
         <footer className="mt-24 pt-4 border-t border-zinc-900 flex justify-between items-center text-[9px] text-zinc-800 uppercase tracking-[0.3em]">
           <span>Positron Core v1.0.0-alpha</span>
-          <span>2024</span>
+          <span>2026</span>
         </footer>
       </div>
     </div>

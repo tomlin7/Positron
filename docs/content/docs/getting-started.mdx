@@ -13,9 +13,32 @@ Get up and running with Positron in 5 minutes!
 - Node.js 16 or higher
 - npm or yarn
 
-## Installation
+## Quick Start
 
-### 1. Clone/Download Positron
+The fastest way to get started is using the CLI:
+
+```bash
+# Initialize a new app
+npm create positron-app@latest
+# or
+npx create-positron-app@latest
+```
+
+Follow the prompts to select a template (React, Vue, Svelte, Next.js, or Vanilla), then:
+
+```bash
+cd my-app
+npm install
+npm run dev
+```
+
+You should see a window open with your chosen template!
+
+## Manual Installation
+
+If you prefer to install manually or from source:
+
+### 1. Clone Positron
 
 ```bash
 git clone https://github.com/tomlin7/positron.git
@@ -28,94 +51,11 @@ cd positron
 pip install -r requirements.txt
 ```
 
-Or manually install pywebview:
-```bash
-pip install pywebview
-```
-
-<Callout type="info">
-Positron uses **pywebview** for rendering, which provides a real browser engine (WebView2 on Windows, WebKit on macOS, GTK WebKit on Linux). This gives you full React, HTML5, and modern JavaScript support!
-</Callout>
-
-## Run the Example App
+### 3. Run an Example
 
 ```bash
-# Navigate to the example app
 cd examples/react-app
-
-# Install Node.js dependencies
 npm install
-
-# Run the app
-python main.py
-```
-
-You should see a window open with a beautiful React UI!
-
-## Create Your Own App
-
-### Method 1: Copy the Example
-
-```bash
-# Copy the example app
-cp -r examples/react-app my-app
-cd my-app
-
-# Install dependencies
-npm install
-
-# Edit main.py and src/App.jsx
-# Run your app
-python main.py
-```
-
-### Method 2: Start From Scratch
-
-**1. Create project directory:**
-```bash
-mkdir my-positron-app
-cd my-positron-app
-```
-
-**2. Initialize React with Vite:**
-```bash
-npm create vite@latest . -- --template react
-npm install
-```
-
-**3. Create main.py:**
-```python
-from positron import App, BrowserWindow
-from positron.renderer import DevServer
-from pathlib import Path
-import sys
-
-# Add positron to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-app = App()
-
-def create_window():
-    win = BrowserWindow({
-        'width': 1000,
-        'height': 700,
-        'title': 'My App'
-    })
-    
-    dev_server = DevServer(
-        cwd=str(Path(__file__).parent),
-        command='npm run dev',
-        port=5173
-    )
-    dev_server.start()
-    win.load_url(dev_server.get_url())
-
-app.when_ready(create_window)
-app.run()
-```
-
-**4. Run your app:**
-```bash
 python main.py
 ```
 

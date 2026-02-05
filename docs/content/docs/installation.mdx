@@ -55,16 +55,32 @@ python -c "import tkinter; print('Tkinter OK')"
   </Tab>
 </Tabs>
 
-## Installation Steps
+## Installation Methods
 
-### Step 1: Clone Repository
+### Method 1: CLI (Recommended)
+
+The easiest way to start is using the CLI, which sets up Python, Node.js dependencies, and a template for you.
+
+```bash
+npm create positron-app@latest
+# or
+npx create-positron-app@latest
+```
+
+This will create a new directory with a ready-to-run Positron app.
+
+### Method 2: Manual Installation
+
+If you prefer to install manually or want to contribute to the core framework:
+
+#### Step 1: Clone Repository
 
 ```bash
 git clone https://github.com/tomlin7/positron.git
 cd positron
 ```
 
-### Step 2: Install Python Dependencies
+#### Step 2: Install Python Dependencies
 
 <Tabs items={['requirements.txt (Recommended)', 'Direct Installation', 'Development Mode']}>
   <Tab value="requirements.txt (Recommended)">
@@ -99,7 +115,7 @@ cd positron
 **pywebview** provides a real browser engine with full HTML5/CSS3/JavaScript support. It uses WebView2 (Windows), WebKit (macOS), or GTK WebKit (Linux) automatically.
 </Callout>
 
-### Step 3: Verify Installation
+#### Step 3: Verify Installation
 
 ```bash
 python -c "from positron import App, BrowserWindow; from positron.ipc import ipc_main; print('✓ Positron installed successfully!')"

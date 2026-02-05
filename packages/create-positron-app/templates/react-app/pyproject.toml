@@ -1,0 +1,17 @@
+[project]
+name = "positron-react-app"
+version = "0.1.0"
+description = "This is a **full React application** built with Positron, demonstrating how to create desktop apps using Python and React."
+authors = [
+    {name = "Billy",email = "billydevbusiness@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "positron-native (>=0.1.5,<0.2.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

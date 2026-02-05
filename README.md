@@ -6,6 +6,14 @@ No Node.js dependency. Pure speed.
 
 ---
 
+### QUICK START
+
+```bash
+npx create-positron-app@latest
+```
+
+---
+
 ### CORE / INITIALIZE
 
 ```python
@@ -54,6 +62,7 @@ app.run()
 - IPC communication
 - Multi-framework support (React, Vue, Svelte, Next.js, Vanilla JS)
 - Dev server integration (Vite, Next.js, Webpack)
+- CLI scaffolding
 
 **02. BUILDING**
 - Documentation (80%)
@@ -65,26 +74,8 @@ app.run()
 - System tray
 - Auto-updater
 - Build tools
-- CLI scaffolding
 
 ---
-
-### QUICK START
-
-```bash
-# Install from PyPI
-pip install positron-native
-
-# Or install from source
-git clone https://github.com/tomlin7/positron.git
-cd positron
-pip install -r requirements.txt
-
-# Run examples
-cd examples/react-app    # or nextjs-app, vue-app, svelte-app, vanilla-app
-npm install              # or bun install
-python main.py
-```
 
 ### FRAMEWORK EXAMPLES
 

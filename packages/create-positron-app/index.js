@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 import ora from 'ora';
 
 const program = new Command();
@@ -106,12 +107,78 @@ async function main() {
                 spinner.succeed(chalk.white('Project created successfully.'));
 
                 console.log('\n');
-                console.log(chalk.gray('  01. ') + chalk.white('cd ') + chalk.white(targetDir));
-                console.log(chalk.gray('  02. ') + chalk.white('npm install'));
-                console.log(chalk.gray('  03. ') + chalk.white('npm run dev'));
+
+                const { installDeps } = await prompts({
+                    type: 'confirm',
+                    name: 'installDeps',
+                    message: chalk.white('Would you like to install NPM dependencies now?'),
+                    initial: true
+                });
+
+                if (installDeps) {
+                    const npmSpinner = ora(chalk.gray('Installing NPM dependencies...')).start();
+                    await new Promise((resolve, reject) => {
+                        const child = spawn('npm', ['install'], { cwd: projectPath, stdio: 'ignore', shell: true });
+                        child.on('close', (code) => {
+                            if (code === 0) resolve();
+                            else reject(new Error('NPM install failed'));
+                        });
+                    });
+                    npmSpinner.succeed(chalk.white('NPM dependencies installed.'));
+                }
+
+                const { installPython } = await prompts({
+                    type: 'confirm',
+                    name: 'installPython',
+                    message: chalk.white('Would you like to install Python dependencies now?'),
+                    initial: true
+                });
+
+                if (installPython) {
+                    const pySpinner = ora(chalk.gray('Installing Python dependencies...')).start();
+                    await new Promise((resolve, reject) => {
+                        const child = spawn('pip', ['install', '-r', 'requirements.txt'], { cwd: projectPath, stdio: 'ignore', shell: true });
+                        child.on('close', (code) => {
+                            if (code === 0) resolve();
+                            else reject(new Error('Pip install failed'));
+                        });
+                    });
+                    pySpinner.succeed(chalk.white('Python dependencies installed.'));
+                }
+
                 console.log('\n');
-                console.log(chalk.gray('  Happy coding!'));
-                console.log('\n');
+
+                let runNow = false;
+                if (installDeps && installPython) {
+                    const response = await prompts({
+                        type: 'confirm',
+                        name: 'runNow',
+                        message: chalk.white('Would you like to run the app now?'),
+                        initial: true
+                    });
+                    runNow = response.runNow;
+                }
+
+                if (runNow) {
+                    console.log(chalk.gray('\n  Running app...'));
+                    const child = spawn('npm', ['run', 'app'], { cwd: projectPath, stdio: 'inherit', shell: true });
+                    await new Promise((resolve) => {
+                        child.on('close', resolve);
+                    });
+                    console.log('\n');
+                    console.log(chalk.gray('  Happy coding!'));
+                    console.log('\n');
+                } else {
+                    console.log('\n');
+                    let step = 1;
+                    console.log(chalk.gray(`  0${step++}. `) + chalk.white('cd ') + chalk.white(targetDir));
+                    if (!installDeps) console.log(chalk.gray(`  0${step++}. `) + chalk.white('npm install'));
+                    if (!installPython) console.log(chalk.gray(`  0${step++}. `) + chalk.white('pip install -r requirements.txt'));
+                    console.log(chalk.gray(`  0${step++}. `) + chalk.white('npm run app'));
+                    console.log('\n');
+                    console.log(chalk.gray('  Happy coding!'));
+                    console.log('\n');
+                }
 
             } catch (err) {
                 spinner.fail('Failed to copy template files.');

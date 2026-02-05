@@ -28,7 +28,7 @@ def handle_get_data(event, message):
 def create_window():
     # Start Vite dev server
     dev_server = DevServer(
-        cwd=str(Path(__file__).parent), command="bun run dev", port=5173
+        cwd=str(Path(__file__).parent), command="npm run dev", port=5173
     )
 
     try:
