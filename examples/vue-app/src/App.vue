@@ -4,14 +4,22 @@ import Logo from './components/Logo.vue'
 
 const count = ref(0)
 const message = ref('')
+const isPositron = ref(false)
 
 onMounted(() => {
-  if ((window as any).positron) {
-    (window as any).ipcRenderer.on('message-from-main', (event: any, msg: string) => {
-      message.value = msg
-    })
-    ;(window as any).ipcRenderer.send('renderer-ready', 'Hello from Vue!')
+  // Check for positron with retry
+  const checkPositron = () => {
+    if ((window as any).positron) {
+      isPositron.value = true
+      ;(window as any).ipcRenderer.on('message-from-main', (event: any, msg: string) => {
+        message.value = msg
+      })
+      ;(window as any).ipcRenderer.send('renderer-ready', 'Hello from Vue!')
+    } else {
+      setTimeout(checkPositron, 100)
+    }
   }
+  checkPositron()
 })
 
 const handleClick = () => {
@@ -54,11 +62,35 @@ const handleInvoke = async () => {
       <div v-if="message" class="message">{{ message }}</div>
 
       <div class="status">
-        {{ (window as any).positron ? 'Running in Positron' : 'Browser mode' }}
+        {{ isPositron ? 'Running in Positron' : 'Browser mode' }}
       </div>
     </div>
   </div>
 </template>
+
+<style>
+:global(*) {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:global(html),
+:global(body) {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+:global(#app) {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
 
 <style scoped>
 * {
@@ -68,13 +100,19 @@ const handleInvoke = async () => {
 }
 
 .app {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: #0a0a0a;
   color: #e0e0e0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 .container {
