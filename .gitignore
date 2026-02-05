@@ -59,6 +59,3 @@ examples/*/build/
 # Temp files
 .claude/
 *.tmp
-
-
-TkinterWeb/

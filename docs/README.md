@@ -1,46 +1,33 @@
-# Positron Documentation
+# Positron Documentation Desktop App
 
-Official documentation site for **Positron** - Build desktop apps with Python and React.
+This is a Positron desktop app that wraps the documentation website.
 
-This is a Next.js application built with [Fumadocs](https://fumadocs.dev).
+## Run as Desktop App
 
-Run development server:
+```bash
+# Make sure dependencies are installed
+npm install
+
+# Run as desktop app
+python main.py
+```
+
+The app will:
+1. Start the Next.js dev server (http://localhost:3000)
+2. Open a native desktop window
+3. Load the docs inside the window
+4. Clean up the dev server when you close the window
+
+## Run as Web App (normal)
 
 ```bash
 npm run dev
-# or
-pnpm dev
-# or
-yarn dev
+# Open http://localhost:3000 in browser
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+## Features
 
-## Explore
-
-In the project, you can see:
-
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
-
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
-
-### Fumadocs MDX
-
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
-
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
-
-## Learn More
-
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+- Native window with full docs
+- Same as web version but in a desktop app
+- Auto-manages Next.js dev server
+- Clean shutdown handling

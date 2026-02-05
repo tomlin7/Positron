@@ -19,7 +19,7 @@ setup(
     description="Build cross-platform desktop apps with React and Python",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/positron",
+    url="https://github.com/tomlin7/positron",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -37,7 +37,7 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        "tkinterweb[full]>=4.0.0",
+        "pywebview>=5.0",
     ],
     extras_require={
         "dev": [

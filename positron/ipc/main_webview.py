@@ -225,9 +225,6 @@ class IPCMain:
             try:
                 # Unpack args list
                 unpacked_args = args if isinstance(args, (list, tuple)) else [args]
-                print(
-                    f"IPC invoke: {channel}, handlers available: {list(ipc_main._handlers.keys())}"
-                )
                 result = ipc_main._dispatch(channel, window, *unpacked_args)
                 return result
             except Exception as e:

@@ -33,7 +33,7 @@ app.run()
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/positron.git
+git clone https://github.com/tomlin7/positron.git
 cd positron
 
 # Install Python dependencies

@@ -26,10 +26,6 @@ def get_ipc_renderer_script() -> str:
     });
 
     function initPositronIPC() {
-        // Debug: Check what's available
-        console.log('initPositronIPC called');
-        console.log('window.pywebview:', window.pywebview);
-
         // Check if pywebview API is available
         if (!window.pywebview || !window.pywebview.api) {
             console.log('Pywebview API not available yet, retrying...');
