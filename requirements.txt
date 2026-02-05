@@ -2,7 +2,8 @@
 
 # Core dependency - WebView for modern browser support
 # Uses WebView2 (Windows), WebKit (macOS), GTK WebKit (Linux)
-pywebview>=6.0
+pywebview>=6.1.0
+pythonnet>=3.0.5
 
 # Development dependencies (optional)
 # Uncomment if you want to contribute to Positron development

@@ -35,7 +35,7 @@ app.run()
 
 ### SPECS / ARCHITECTURE
 
-- **Runtime**: Python 3.8+ / No Node.js dependency
+- **Runtime**: Python 3.9+ / No Node.js dependency
 - **Renderer**: OS Native WebView (WebView2 / WebKit)
 - **UI**: React 18 / Vite 5
 - **IPC**: Bidirectional bridge (Electron-compatible)
@@ -69,9 +69,15 @@ app.run()
 ### QUICK START
 
 ```bash
+# Install from PyPI
+pip install positron-native
+
+# Or install from source
 git clone https://github.com/tomlin7/positron.git
 cd positron
 pip install -r requirements.txt
+
+# Run example
 cd examples/react-app
 npm install
 python main.py

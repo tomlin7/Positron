@@ -39,6 +39,7 @@ class DevServer:
         self.cwd = Path(cwd).resolve()
         self.command = command
         self.port = port
+        self.original_port = port
         self.host = host
         self.wait_timeout = wait_timeout
         self.process: Optional[subprocess.Popen] = None
@@ -90,12 +91,27 @@ class DevServer:
 
     def _read_output(self, pipe):
         """Read and print output from the dev server process"""
+        import re
+
         try:
             for line in iter(pipe.readline, ""):
                 if line:
                     print(f"[DevServer] {line.rstrip()}")
+
                     # Check if Vite is ready
                     if "ready in" in line.lower() or "local:" in line.lower():
+                        self._server_ready = True
+
+                    # Detect Next.js port (e.g., "- Local:         http://localhost:3001")
+                    if "local:" in line.lower():
+                        match = re.search(r"localhost:(\d+)", line)
+                        if match:
+                            detected_port = int(match.group(1))
+                            if detected_port != self.original_port:
+                                print(
+                                    f"[DevServer] Detected port changed from {self.original_port} to {detected_port}"
+                                )
+                                self.port = detected_port
                         self._server_ready = True
         except Exception:
             pass
@@ -110,11 +126,18 @@ class DevServer:
         start_time = time.time()
 
         while time.time() - start_time < self.wait_timeout:
-            # Check if we saw the ready message or if port is open
-            if self._server_ready or self._is_port_open():
+            # Check if we saw the ready message
+            if self._server_ready:
                 # Give it a moment to fully start
                 time.sleep(1)
                 return True
+
+            # Also check if the current port is open (in case port changed)
+            if self._is_port_open():
+                # Give it a moment to fully start
+                time.sleep(1)
+                return True
+
             time.sleep(0.5)
 
         return False

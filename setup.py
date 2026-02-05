@@ -13,7 +13,7 @@ long_description = (
 )
 
 setup(
-    name="positron-framework",
+    name="positron-native",
     version="0.1.0",
     author="Positron Contributors",
     description="Build cross-platform desktop apps with React and Python",
@@ -37,7 +37,8 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        "pywebview>=5.0",
+        "pywebview>=6.1.0",
+        "pythonnet>=3.0.5",
     ],
     extras_require={
         "dev": [

@@ -1,0 +1,49 @@
+[project]
+name = "positron-native"
+version = "0.1.0"
+description = "Build cross-platform desktop apps with React and Python"
+authors = [{ name = "tomlin7" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10,<3.13" # Optimized for Python 3.12 compatibility
+keywords = ["desktop", "gui", "react", "electron", "webview", "python"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: User Interfaces",
+]
+dependencies = [
+    "pywebview>=6.1.0", # Released Oct 2025
+    "pythonnet>=3.0.5", # Latest stable for Python 3.12
+]
+
+[project.urls]
+homepage = "https://github.com"
+repository = "https://github.com"
+documentation = "https://positron.vercel.app"
+
+[tool.poetry]
+packages = [{ include = "positron" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9.0.2" # Released Dec 2025
+black = ">=26.1.0" # 2026 Stable Style
+flake8 = ">=7.1.1" # Latest stable
+mypy = ">=1.14.1"  # Latest stable
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
