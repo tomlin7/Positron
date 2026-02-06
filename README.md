@@ -1,8 +1,9 @@
 # POSITRON
 
-**High-performance desktop applications with Python and modern web frameworks.**
+**High-performance desktop applications with Python and modern web frameworks.** Fast by design. Minimal by choice.
+
 React • Vue • Svelte • Next.js • Vanilla JS
-No Node.js dependency. Pure speed.
+
 
 ---
 
